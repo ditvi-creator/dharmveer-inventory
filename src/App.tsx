@@ -510,11 +510,11 @@ export default function App() {
               Track items, manage bookings, generate delivery challans, and stay on top of your inventory — all in one secure place.
             </p>
 
-            <div className="flex items-center justify-center gap-4 mb-24">
-              <button onClick={() => setShowLogin(true)} className="px-6 py-3 text-[15px] font-medium text-white bg-[#2563eb] rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24 w-full">
+              <button onClick={() => setShowLogin(true)} className="w-full sm:w-auto px-6 py-3 text-[15px] font-medium text-white bg-[#2563eb] rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                 Get Started Free
               </button>
-              <button onClick={() => setShowLogin(true)} className="px-6 py-3 text-[15px] font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+              <button onClick={() => setShowLogin(true)} className="w-full sm:w-auto px-6 py-3 text-[15px] font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
                 Sign In
               </button>
             </div>

@@ -166,24 +166,24 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                   </div>
 
                   {/* Table */}
-                  <div className="w-full">
-                    <table className="w-full">
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[400px]">
                       <thead>
                         <tr className="border-b border-[#e5e7eb] text-[13px] font-medium text-[#6b7280]">
-                          <th className="py-3 px-6 text-left font-medium w-12">#</th>
-                          <th className="py-3 px-6 text-left font-medium">Item Name</th>
-                          <th className="py-3 px-6 text-left font-medium">Size</th>
-                          <th className="py-3 px-6 text-right font-medium">QTY (Booked)</th>
-                          <th className="py-3 px-6 text-left font-medium w-20">Unit</th>
+                          <th className="py-3 px-4 sm:px-6 text-left font-medium w-12">#</th>
+                          <th className="py-3 px-4 sm:px-6 text-left font-medium">Item Name</th>
+                          <th className="py-3 px-4 sm:px-6 text-left font-medium">Size</th>
+                          <th className="py-3 px-4 sm:px-6 text-right font-medium">QTY (Booked)</th>
+                          <th className="py-3 px-4 sm:px-6 text-left font-medium w-16 sm:w-20">Unit</th>
                         </tr>
                       </thead>
                       <tbody className="bg-[#ffffff] text-[14px]">
                         <tr className="border-b border-[#f3f4f6]">
-                          <td className="py-4 px-6 text-[#6b7280]">1</td>
-                          <td className="py-4 px-6 font-bold text-[#111827]">{item.name}</td>
-                          <td className="py-4 px-6 text-[#4b5563]">{item.size}</td>
-                          <td className="py-4 px-6 text-right font-bold text-[#2962d9] text-[16px]">{booking.qty}</td>
-                          <td className="py-4 px-6 text-[#4b5563]">{item.unit || 'BOX'}</td>
+                          <td className="py-4 px-4 sm:px-6 text-[#6b7280]">1</td>
+                          <td className="py-4 px-4 sm:px-6 font-bold text-[#111827]">{item.name}</td>
+                          <td className="py-4 px-4 sm:px-6 text-[#4b5563]">{item.size}</td>
+                          <td className="py-4 px-4 sm:px-6 text-right font-bold text-[#2962d9] text-[16px]">{booking.qty}</td>
+                          <td className="py-4 px-4 sm:px-6 text-[#4b5563]">{item.unit || 'BOX'}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -196,41 +196,41 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                   </div>
 
                   {/* Signatures */}
-                  <div className="px-6 py-8 flex justify-between bg-[#f8f9fa]">
+                  <div className="px-6 py-8 flex justify-between bg-[#f8f9fa] flex-wrap gap-6">
                     <div>
                       <div className="text-[13px] text-[#6b7280] mb-8">Authorised Signature:</div>
-                      <div className="w-48 border-b border-[#9ca3af]"></div>
+                      <div className="w-32 md:w-48 border-b border-[#9ca3af]"></div>
                     </div>
                     <div>
                       <div className="text-[13px] text-[#6b7280] mb-8">Received By:</div>
-                      <div className="w-48 border-b border-[#9ca3af]"></div>
+                      <div className="w-32 md:w-48 border-b border-[#9ca3af]"></div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-6 flex justify-end gap-3 mt-2">
+            <div className="px-6 py-6 flex flex-col sm:flex-row justify-end gap-3 mt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors"
               >
                 Close
               </button>
               <button
                 onClick={handleExportPDF}
-                className="px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Export PDF
               </button>
               <button
                 onClick={() => handlePrint()}
-                className="px-6 py-2.5 bg-[#2962d9] text-white rounded-[8px] text-[15px] font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#2962d9] text-white rounded-[8px] text-[15px] font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Printer className="w-4 h-4" />
-                Print Challan
+                Print
               </button>
             </div>
           </motion.div>

@@ -89,7 +89,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
             </div>
 
             <div className="px-6 py-6 overflow-y-auto max-h-[75vh]">
-              <div className="grid grid-cols-[1.5fr_1.5fr_80px_32px] gap-3 mb-2">
+              <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_80px_32px] gap-3 mb-2">
                 <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide">Party Name</div>
                 <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide">Address</div>
                 <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide">Qty</div>
@@ -104,38 +104,47 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                 </datalist>
 
                 {bookings.map((booking, index) => (
-                  <div key={booking.id} className="grid grid-cols-[1.5fr_1.5fr_80px_32px] gap-3 items-center group">
-                    <input
-                      type="text"
-                      list={`party-names-${item.id}`}
-                      placeholder="Party name"
-                      value={booking.partyName}
-                      onChange={(e) => updateBooking(booking.id, { partyName: e.target.value })}
-                      className={`w-full bg-white border ${index === 0 && booking.partyName === '' ? 'border-[#2962d9]' : 'border-gray-200'} rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-400`}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Address"
-                      value={booking.address}
-                      onChange={(e) => updateBooking(booking.id, { address: e.target.value })}
-                      className="w-full bg-transparent border border-gray-200 rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-[#6b7280]"
-                    />
-                    <div className="relative">
-                       <input
-                        type="number"
-                        min="0"
-                        placeholder="0"
-                        value={booking.qty === 0 ? '' : booking.qty}
-                        onChange={(e) => updateBooking(booking.id, { qty: e.target.value === '' ? 0 : Number(e.target.value) })}
-                        className="w-full bg-transparent border border-gray-200 rounded-[8px] px-3 py-2.5 text-[14px] text-center text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-900"
+                  <div key={booking.id} className="flex flex-col md:grid md:grid-cols-[1.5fr_1.5fr_80px_32px] gap-3 items-start md:items-center p-3 md:p-0 bg-white border border-gray-200 md:border-transparent md:bg-transparent rounded-xl md:rounded-none">
+                    <div className="w-full">
+                      <label className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide mb-1 block md:hidden">Party Name</label>
+                      <input
+                        type="text"
+                        list={`party-names-${item.id}`}
+                        placeholder="Party name"
+                        value={booking.partyName}
+                        onChange={(e) => updateBooking(booking.id, { partyName: e.target.value })}
+                        className={`w-full bg-white border ${index === 0 && booking.partyName === '' ? 'border-[#2962d9]' : 'border-gray-200'} rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-400`}
                       />
                     </div>
-                    <button 
-                      onClick={() => removeBooking(booking.id)}
-                      className="text-[#f87171] hover:text-red-700 transition-colors flex items-center justify-center p-1"
-                    >
-                      <Trash2 className="w-[18px] h-[18px]" strokeWidth={1.5} />
-                    </button>
+                    <div className="w-full">
+                      <label className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide mb-1 block md:hidden">Address</label>
+                      <input
+                        type="text"
+                        placeholder="Address"
+                        value={booking.address}
+                        onChange={(e) => updateBooking(booking.id, { address: e.target.value })}
+                        className="w-full bg-white md:bg-transparent border border-gray-200 rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-[#6b7280]"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                      <div className="flex-1 md:w-full relative">
+                        <label className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide mb-1 block md:hidden">Qty</label>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={booking.qty === 0 ? '' : booking.qty}
+                          onChange={(e) => updateBooking(booking.id, { qty: e.target.value === '' ? 0 : Number(e.target.value) })}
+                          className="w-full bg-white md:bg-transparent border border-gray-200 rounded-[8px] px-3 py-2.5 text-[14px] text-center text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-900"
+                        />
+                      </div>
+                      <button 
+                        onClick={() => removeBooking(booking.id)}
+                        className="text-[#f87171] hover:text-red-700 bg-red-50 md:bg-transparent rounded-lg md:rounded-none transition-colors flex items-center justify-center p-2.5 md:p-1 md:mt-0 mt-[22px]"
+                      >
+                        <Trash2 className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 ))}
                 
