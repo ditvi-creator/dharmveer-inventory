@@ -105,12 +105,61 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   const login = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      if (err.code === 'auth/unauthorized-domain') {
+        alert('This domain is not authorized for Google Sign-In. Please add it to your Firebase Console -> Authentication -> Settings -> Authorized domains.');
+      } else {
+        alert(`Google Sign-In Error: ${err.message}`);
+      }
+    }
+  };
+
+  const loginWithEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+    try {
+      // Trying to sign in
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        // If not found, let's try to create them instead? Or just give an error.
+        alert('Invalid email or password, or user does not exist.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        alert('Email/Password sign-in is not enabled. Please enable it in Firebase Console -> Authentication -> Sign-in method.');
+      } else {
+        alert(`Sign-in Error: ${err.message}`);
+      }
+    }
+  };
+
+  const signUpWithEmail = async () => {
+    if (!email || !password) {
+      alert("Please enter both email and password to sign up.");
+      return;
+    }
+    try {
+      const { createUserWithEmailAndPassword } = await import('firebase/auth');
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/operation-not-allowed') {
+        alert('Email/Password sign-in is not enabled. Please enable it in Firebase Console -> Authentication -> Sign-in method.');
+      } else {
+        alert(`Sign-up Error: ${err.message}`);
+      }
     }
   };
 
@@ -544,7 +593,7 @@ export default function App() {
             <div className="flex-1 h-px bg-gray-200"></div>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); login(); }} className="space-y-4 mb-6">
+          <form onSubmit={loginWithEmail} className="space-y-4 mb-6">
             <div>
               <label className="block text-sm font-semibold text-[#334155] mb-1.5 text-center">Email</label>
               <div className="relative">
@@ -553,6 +602,8 @@ export default function App() {
                 </div>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400"
                 />
@@ -567,6 +618,8 @@ export default function App() {
                 </div>
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="........"
                   className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400 tracking-widest"
                 />
@@ -574,8 +627,7 @@ export default function App() {
             </div>
 
             <button 
-              type="button"
-              onClick={login}
+              type="submit"
               className="w-full bg-[#0f172a] text-white rounded-xl py-3.5 font-semibold text-[15px] hover:bg-[#1e293b] active:scale-[0.98] transition-all mt-4"
             >
               Sign in
@@ -588,7 +640,7 @@ export default function App() {
             </button>
             <div className="text-[#64748b]">
               Need an account?{' '}
-              <button className="text-[#334155] font-semibold hover:text-[#0f172a] transition-colors">
+              <button onClick={signUpWithEmail} className="text-[#334155] font-semibold hover:text-[#0f172a] transition-colors">
                 Sign up
               </button>
             </div>
