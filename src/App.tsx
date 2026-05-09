@@ -6,17 +6,37 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Layout } from './components/Layout';
 import { StockTable } from './components/StockTable';
-import { AddItemModal } from './components/AddItemModal';
-import { StockItem } from './types';
+import { ItemModal } from './components/ItemModal';
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
+import { BookingsModal } from './components/BookingsModal';
+import { ChallanModal } from './components/ChallanModal';
+import { StockItem, Booking } from './types';
 import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import Papa from 'papaparse';
 
 export default function App() {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<StockItem | null>(null);
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [selectedItemForBookings, setSelectedItemForBookings] = useState<StockItem | null>(null);
+  const [selectedChallanBooking, setSelectedChallanBooking] = useState<{item: StockItem, booking: Booking} | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
+
+  const allPartyNames = useMemo(() => {
+    const names = new Set<string>();
+    items.forEach(item => {
+      if (item.partyName) names.add(item.partyName);
+      item.bookings?.forEach(b => {
+        if (b.partyName) names.add(b.partyName);
+      });
+    });
+    return Array.from(names).filter(Boolean).sort();
+  }, [items]);
 
   // Load items on mount
   useEffect(() => {
@@ -34,6 +54,24 @@ export default function App() {
       console.error('Failed to fetch stock', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openAddModal = () => {
+    setItemToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (item: StockItem) => {
+    setItemToEdit(item);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveItem = async (data: any) => {
+    if (itemToEdit) {
+      await updateItem(itemToEdit.id, data);
+    } else {
+      await addItem(data);
     }
   };
 
@@ -69,36 +107,71 @@ export default function App() {
     const stockOut = merged.stockOut ?? 0;
     const balance = (merged.openingStockMP + merged.openingStockKL + stockIn) - stockOut;
 
+    const finalUpdates = { ...updates, balance };
+
+    // Optimistic update
+    const previousItems = [...items];
+    setItems(items.map(i => i.id === id ? { ...i, ...finalUpdates } : i));
+
     try {
       const res = await fetch(`/api/stock/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...updates, balance })
+        body: JSON.stringify(finalUpdates)
       });
-      if (res.ok) fetchStock();
+      if (!res.ok) {
+        setItems(previousItems);
+        alert('Failed to update item on server');
+      }
     } catch (err) {
       console.error('Failed to update item', err);
+      setItems(previousItems);
     }
   };
 
-  const deleteItem = async (id: string) => {
-    if (!confirm('Delete this item permanently?')) return;
+  const deleteItem = async () => {
+    if (!itemToDelete) return;
+    const id = itemToDelete;
+    setItemToDelete(null);
+    
+    // Optimistic delete
+    const previousItems = [...items];
+    setItems(items.filter(i => i.id !== id));
+
     try {
       const res = await fetch(`/api/stock/${id}`, { method: 'DELETE' });
-      if (res.ok) fetchStock();
+      if (!res.ok) {
+        setItems(previousItems);
+        alert('Failed to delete item from server');
+      }
     } catch (err) {
       console.error('Failed to delete item', err);
+      setItems(previousItems);
     }
   };
 
   const deleteAllItems = async () => {
-    if (!confirm('Are you sure you want to delete ALL inventory records? This cannot be undone.')) return;
+    setIsDeleteAllModalOpen(false);
+    
+    // Optimistic delete all
+    const previousItems = [...items];
+    setItems([]);
+
     try {
-      const res = await fetch('/api/stock/all/clear', { method: 'DELETE' });
-      if (res.ok) fetchStock();
+      const res = await fetch('/api/stock', { method: 'DELETE' });
+      if (!res.ok) {
+        setItems(previousItems);
+        alert('Failed to clear inventory on server');
+      }
     } catch (err) {
       console.error('Failed to delete all items', err);
+      setItems(previousItems);
     }
+  };
+
+  const saveBookings = async (id: string, bookings: Booking[]) => {
+    const totalBooked = bookings.reduce((sum, b) => sum + (Number(b.qty) || 0), 0);
+    await updateItem(id, { bookings, booked: totalBooked });
   };
 
   const filteredAndSortedItems = useMemo(() => {
@@ -184,57 +257,66 @@ export default function App() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n');
-      if (lines.length < 2) return;
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const newItems = results.data.map((row: any) => {
+          const item: any = {};
+          
+          // Use normalized keys for matching
+          Object.keys(row).forEach(key => {
+            const normalizedKey = key.toLowerCase().trim();
+            const val = row[key];
 
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
-      
-      const newItems = lines.slice(1).filter(line => line.trim()).map(line => {
-        const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-        const item: any = {};
-        
-        headers.forEach((header, index) => {
-          const val = values[index];
-          if (header.includes('item name') || header === 'name') item.name = val;
-          else if (header.includes('size')) item.size = val;
-          else if (header.includes('unit')) item.unit = val;
-          else if (header.includes('mp')) item.openingStockMP = Number(val) || 0;
-          else if (header.includes('kl')) item.openingStockKL = Number(val) || 0;
-          else if (header.includes('reorder')) item.reorderLevel = Number(val) || 0;
-          else if (header.includes('party')) item.partyName = val;
-        });
-        
-        item.name = item.name || 'Unnamed Item';
-        item.size = item.size || 'N/A';
-        item.unit = item.unit || 'BOX';
-        item.stockIn = 0;
-        item.stockOut = 0;
-        item.booked = 0;
-        item.balance = (item.openingStockMP || 0) + (item.openingStockKL || 0);
-        return item;
-      });
-
-      if (newItems.length > 0) {
-        try {
-          const res = await fetch('/api/stock/bulk', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newItems)
+            if (normalizedKey.includes('item name') || normalizedKey === 'name') item.name = val;
+            else if (normalizedKey.includes('size')) item.size = val;
+            else if (normalizedKey.includes('unit')) item.unit = val;
+            else if (normalizedKey.includes('mp')) item.openingStockMP = Number(val) || 0;
+            else if (normalizedKey.includes('kl')) item.openingStockKL = Number(val) || 0;
+            else if (normalizedKey.includes('reorder')) item.reorderLevel = Number(val) || 0;
+            else if (normalizedKey.includes('party')) item.partyName = val;
           });
-          if (res.ok) {
-            alert(`Successfully imported ${newItems.length} items`);
-            fetchStock();
+
+          // Ensure defaults for missing values
+          return {
+            name: item.name || 'Unnamed Item',
+            size: item.size || 'N/A',
+            unit: item.unit || 'BOX',
+            openingStockMP: item.openingStockMP || 0,
+            openingStockKL: item.openingStockKL || 0,
+            reorderLevel: item.reorderLevel || 0,
+            partyName: item.partyName || '',
+            stockIn: 0,
+            stockOut: 0,
+            booked: 0,
+            balance: (item.openingStockMP || 0) + (item.openingStockKL || 0)
+          };
+        });
+
+        if (newItems.length > 0) {
+          try {
+            const res = await fetch('/api/stock/bulk', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newItems)
+            });
+            if (res.ok) {
+              alert(`Successfully imported ${newItems.length} items`);
+              fetchStock();
+            }
+          } catch (err) {
+            console.error('Bulk upload failed', err);
+            alert('Failed to import items. Please check the console for details.');
           }
-        } catch (err) {
-          console.error('Bulk upload failed', err);
         }
+        event.target.value = '';
+      },
+      error: (error) => {
+        console.error('CSV Parsing Error:', error);
+        alert('Error parsing CSV file');
       }
-      event.target.value = '';
-    };
-    reader.readAsText(file);
+    });
   };
 
   if (loading) {
@@ -248,8 +330,8 @@ export default function App() {
 
   return (
     <Layout 
-      onAddItem={() => setIsModalOpen(true)}
-      onDeleteAll={deleteAllItems}
+      onAddItem={openAddModal}
+      onDeleteAll={() => setIsDeleteAllModalOpen(true)}
       onDownloadTemplate={downloadTemplate}
       onImportCSV={handleImportCSV}
       onExportCSV={exportCSV}
@@ -315,14 +397,53 @@ export default function App() {
 
       <StockTable 
         items={filteredAndSortedItems} 
+        onEditItem={openEditModal}
         onUpdateItem={updateItem}
-        onDeleteItem={deleteItem}
+        onDeleteItem={(id) => setItemToDelete(id)}
+        onOpenBookings={(item) => setSelectedItemForBookings(item)}
+        onOpenChallan={(item, booking) => setSelectedChallanBooking({ item, booking })}
       />
 
-      <AddItemModal 
+      <ItemModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onAdd={addItem} 
+        onClose={() => {
+          setIsModalOpen(false);
+          setItemToEdit(null);
+        }} 
+        onSave={handleSaveItem} 
+        itemToEdit={itemToEdit}
+        partyNames={allPartyNames}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteAllModalOpen}
+        onClose={() => setIsDeleteAllModalOpen(false)}
+        onConfirm={deleteAllItems}
+        title="Delete All Items?"
+        description={`This will permanently delete all ${items.length} stock items. This action cannot be undone.`}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={!!itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={deleteItem}
+        title="Delete Item?"
+        description="This will permanently delete this stock item. This action cannot be undone."
+      />
+
+      <BookingsModal
+        isOpen={!!selectedItemForBookings}
+        onClose={() => setSelectedItemForBookings(null)}
+        item={selectedItemForBookings}
+        onSave={saveBookings}
+        partyNames={allPartyNames}
+      />
+
+      <ChallanModal
+        isOpen={!!selectedChallanBooking}
+        onClose={() => setSelectedChallanBooking(null)}
+        item={selectedChallanBooking?.item || null}
+        booking={selectedChallanBooking?.booking || null}
       />
     </Layout>
   );

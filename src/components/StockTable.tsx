@@ -6,39 +6,19 @@
 import React from 'react';
 import { StockItem } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Edit2, Save, X, Plus, Trash2 } from 'lucide-react';
+import { Edit2, Save, X, Plus, Trash2, Printer, AlertCircle } from 'lucide-react';
+import { Booking } from '../types';
 
 interface StockTableProps {
   items: StockItem[];
+  onEditItem: (item: StockItem) => void;
   onUpdateItem: (id: string, updates: Partial<StockItem>) => void;
   onDeleteItem: (id: string) => void;
+  onOpenBookings: (item: StockItem) => void;
+  onOpenChallan: (item: StockItem, booking: Booking) => void;
 }
 
-export const StockTable: React.FC<StockTableProps> = ({ items, onUpdateItem, onDeleteItem }) => {
-  const [editingId, setEditingId] = React.useState<string | null>(null);
-  const [editValues, setEditValues] = React.useState<Partial<StockItem>>({});
-
-  const startEditing = (item: StockItem) => {
-    setEditingId(item.id);
-    setEditValues({
-      stockIn: item.stockIn,
-      stockOut: item.stockOut,
-      booked: item.booked,
-      reorderLevel: item.reorderLevel,
-      partyName: item.partyName,
-    });
-  };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setEditValues({});
-  };
-
-  const handleSave = (id: string) => {
-    onUpdateItem(id, editValues);
-    setEditingId(null);
-  };
-
+export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpdateItem, onDeleteItem, onOpenBookings, onOpenChallan }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
@@ -59,8 +39,8 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onUpdateItem, onD
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
             </tr>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-4 py-2 text-center text-[10px] font-bold text-gray-400 uppercase border-r border-gray-100">MP</th>
-              <th className="px-4 py-2 text-center text-[10px] font-bold text-gray-400 uppercase border-r border-gray-100">KL</th>
+              <th className="px-4 py-2 text-center text-[15px] font-bold text-gray-400 uppercase border-r border-gray-100">MP</th>
+              <th className="px-4 py-2 text-center text-[15px] font-bold text-gray-400 uppercase border-r border-gray-100">KL</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -73,7 +53,6 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onUpdateItem, onD
                 </tr>
               ) : (
                 items.map((item, index) => {
-                  const isEditing = editingId === item.id;
                   const isLowStock = item.balance <= item.reorderLevel;
 
                   return (
@@ -85,120 +64,131 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onUpdateItem, onD
                       className="hover:bg-gray-50/50 transition-colors group"
                     >
                       <td className="px-4 py-4 text-xs text-gray-400 border-r border-gray-50 italic">{index + 1}</td>
-                      <td className="px-4 py-4 font-bold text-sm text-gray-900 border-r border-gray-50">{item.name}</td>
-                      <td className="px-4 py-4 text-sm text-gray-600 border-r border-gray-50">{item.size}</td>
-                      <td className="px-4 py-4 text-sm text-gray-500 border-r border-gray-50 uppercase">{item.unit || 'BOX'}</td>
+                      <td className="px-4 py-4 font-bold text-sm text-gray-900 border-r border-gray-50">
+                        {item.name}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-600 border-r border-gray-50">
+                        {item.size}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 border-r border-gray-50 uppercase">
+                        {item.unit || 'BOX'}
+                      </td>
                       
-                      <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50 bg-gray-50/30">{item.openingStockMP}</td>
-                      <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50">{item.openingStockKL}</td>
-                      
+                      <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50 bg-gray-50/30">
+                        {item.openingStockMP}
+                      </td>
                       <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50">
-                        {isEditing ? (
-                          <input 
-                            type="number"
-                            value={editValues.stockIn}
-                            onChange={(e) => setEditValues({ ...editValues, stockIn: Number(e.target.value) })}
-                            className="w-full text-center border border-gray-200 rounded px-1 py-1 text-sm bg-white"
-                          />
-                        ) : (
-                          item.stockIn
-                        )}
+                        {item.openingStockKL}
+                      </td>
+                      
+                      <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50">
+                        <input
+                          type="number"
+                          value={item.stockIn === 0 ? '' : item.stockIn}
+                          onChange={(e) => onUpdateItem(item.id, { stockIn: e.target.value === '' ? 0 : Number(e.target.value) })}
+                          placeholder="0"
+                          className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-1 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                       </td>
 
-                      <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50">
-                        {isEditing ? (
-                          <input 
-                            type="number"
-                            value={editValues.stockOut}
-                            onChange={(e) => setEditValues({ ...editValues, stockOut: Number(e.target.value) })}
-                            className="w-full text-center border border-gray-200 rounded px-1 py-1 text-sm bg-white"
-                          />
-                        ) : (
-                          item.stockOut
-                        )}
+                      <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50">
+                        <input
+                          type="number"
+                          value={item.stockOut === 0 ? '' : item.stockOut}
+                          onChange={(e) => onUpdateItem(item.id, { stockOut: e.target.value === '' ? 0 : Number(e.target.value) })}
+                          placeholder="0"
+                          className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-1 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                       </td>
 
                       <td className="px-4 py-4 border-r border-gray-50 text-center">
-                        <span className={`inline-flex items-center justify-center w-12 h-7 rounded-sm text-sm font-bold border ${
-                          isLowStock 
-                          ? 'bg-red-50 text-red-600 border-red-200' 
-                          : 'bg-green-50 text-green-600 border-green-200'
-                        }`}>
-                          {item.balance}
-                        </span>
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          <span className={`inline-flex items-center justify-center w-12 h-7 rounded-sm text-sm font-bold border ${
+                            isLowStock 
+                            ? 'bg-red-50 text-red-600 border-red-200 shadow-[0_0_10px_rgba(220,38,38,0.2)]' 
+                            : 'bg-green-50 text-green-600 border-green-200'
+                          }`}>
+                            {item.balance}
+                          </span>
+                          {isLowStock && (
+                            <span className="text-[10px] uppercase font-bold text-red-500 tracking-wider flex items-center gap-1 animate-pulse">
+                              <AlertCircle className="w-3 h-3" />
+                              Low Stock
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="px-4 py-4 text-sm text-center text-gray-500 border-r border-gray-50">
-                        {isEditing ? (
-                          <input 
-                            type="number"
-                            value={editValues.reorderLevel}
-                            onChange={(e) => setEditValues({ ...editValues, reorderLevel: Number(e.target.value) })}
-                            className="w-full text-center border border-gray-200 rounded px-1 py-1 text-sm bg-white"
-                          />
-                        ) : (
-                          item.reorderLevel
-                        )}
+                        {item.reorderLevel}
                       </td>
 
                       <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50">
-                        {isEditing ? (
-                          <input 
-                            type="number"
-                            value={editValues.booked}
-                            onChange={(e) => setEditValues({ ...editValues, booked: Number(e.target.value) })}
-                            className="w-full text-center border border-gray-200 rounded px-1 py-1 text-sm bg-white"
-                          />
-                        ) : (
-                          item.booked
-                        )}
+                        {item.booked}
                       </td>
 
-                      <td className="px-4 py-4 text-sm text-gray-600 border-r border-gray-50">
-                        <div className="flex items-center justify-between">
-                          {isEditing ? (
-                            <input 
-                              type="text"
-                              value={editValues.partyName}
-                              onChange={(e) => setEditValues({ ...editValues, partyName: e.target.value })}
-                              className="w-full border border-gray-200 rounded px-2 py-1 text-sm bg-white"
-                            />
-                          ) : (
-                            <>
-                              <span className="truncate max-w-[120px]">{item.partyName || '---'}</span>
-                              <button 
-                                onClick={() => onUpdateItem(item.id, { stockIn: (item.stockIn || 0) + 1 })}
-                                className="text-blue-500 hover:text-blue-700 p-1 ml-2 bg-blue-50 rounded transition-colors"
-                                title="Quick +1 Stock In"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
+                      <td className="px-4 py-4 text-sm text-gray-600 border-r border-gray-50 align-top">
+                        <div className="flex items-start justify-between min-w-[200px]">
+                          <div className="flex flex-col w-full">
+                            {item.bookings && item.bookings.length > 0 ? (
+                              <div className="space-y-2">
+                                {item.bookings.map((booking) => (
+                                  <div key={booking.id} className="text-xs bg-gray-50/80 p-2.5 rounded-lg border border-gray-100/80">
+                                    <div className="flex justify-between items-start gap-2 mb-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-bold text-gray-800 break-words text-[15px]">{booking.partyName || 'Unknown'}</span>
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onOpenChallan(item, booking);
+                                          }}
+                                          className="text-gray-400 hover:text-[#2962d9] transition-colors p-0.5"
+                                          title="Print Delivery Challan"
+                                        >
+                                          <Printer className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                      <span className="text-[#2962d9] font-bold bg-blue-50 px-1.5 py-0.5 rounded text-[15px] whitespace-nowrap">
+                                        Qty: {booking.qty}
+                                      </span>
+                                    </div>
+                                    {booking.address && (
+                                      <div className="text-gray-500 text-[14px] leading-snug break-words">{booking.address}</div>
+                                    )}
+                                  </div>
+                                ))}
+                                <button 
+                                  onClick={() => onOpenBookings(item)}
+                                  className="flex items-center justify-center gap-1 w-full text-[15px] font-semibold text-[#2962d9] hover:text-blue-800 py-1.5 bg-blue-50/50 hover:bg-blue-50 rounded-lg transition-colors mt-1"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                  Manage Bookings
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <span className="truncate max-w-[120px] text-gray-400 italic">No bookings</span>
+                                <button 
+                                  onClick={() => onOpenBookings(item)}
+                                  className="text-[#2962d9] hover:text-blue-800 p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                  title="Add Bookings"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
 
                       <td className="px-4 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          {isEditing ? (
-                            <>
-                              <button onClick={() => handleSave(item.id)} className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100">
-                                <Save className="w-4 h-4" />
-                              </button>
-                              <button onClick={cancelEditing} className="p-1.5 bg-gray-50 text-gray-400 rounded-md hover:bg-gray-100">
-                                <X className="w-4 h-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => startEditing(item)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => onDeleteItem(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
+                          <button onClick={() => onEditItem(item)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => onDeleteItem(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </motion.tr>

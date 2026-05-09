@@ -3,18 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, PackagePlus } from 'lucide-react';
+import { X, PackagePlus, Save } from 'lucide-react';
+import { StockItem } from '../types';
 
-interface AddItemModalProps {
+interface ItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: any) => void;
+  onSave: (data: any) => void;
+  itemToEdit?: StockItem | null;
+  partyNames?: string[];
 }
 
-export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onAdd }) => {
-  const [formData, setFormData] = React.useState({
+export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, itemToEdit, partyNames = [] }) => {
+  const [formData, setFormData] = useState({
     name: '',
     size: '',
     unit: 'BOX',
@@ -24,19 +27,48 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onA
     partyName: '',
   });
 
+  useEffect(() => {
+    if (!isOpen) {
+      // Clear form when closed
+      setFormData({ 
+        name: '', 
+        size: '', 
+        unit: 'BOX', 
+        openingStockMP: 0, 
+        openingStockKL: 0, 
+        reorderLevel: 0, 
+        partyName: '' 
+      });
+      return;
+    }
+
+    if (itemToEdit) {
+      setFormData({
+        name: itemToEdit.name || '',
+        size: itemToEdit.size || '',
+        unit: itemToEdit.unit || 'BOX',
+        openingStockMP: itemToEdit.openingStockMP || 0,
+        openingStockKL: itemToEdit.openingStockKL || 0,
+        reorderLevel: itemToEdit.reorderLevel || 0,
+        partyName: itemToEdit.partyName || '',
+      });
+    } else {
+      setFormData({ 
+        name: '', 
+        size: '', 
+        unit: 'BOX', 
+        openingStockMP: 0, 
+        openingStockKL: 0, 
+        reorderLevel: 0, 
+        partyName: '' 
+      });
+    }
+  }, [itemToEdit, isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) return;
-    onAdd(formData);
-    setFormData({ 
-      name: '', 
-      size: '', 
-      unit: 'BOX', 
-      openingStockMP: 0, 
-      openingStockKL: 0, 
-      reorderLevel: 0, 
-      partyName: '' 
-    });
+    onSave(formData);
     onClose();
   };
 
@@ -60,11 +92,13 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onA
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center">
-                  <PackagePlus className="w-6 h-6" />
+                  {itemToEdit ? <Save className="w-6 h-6" /> : <PackagePlus className="w-6 h-6" />}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">New Stock Item</h3>
-                  <p className="text-xs text-gray-400">Add a new item to your inventory registry</p>
+                  <h3 className="text-xl font-bold">{itemToEdit ? "Edit Stock Item" : "New Stock Item"}</h3>
+                  <p className="text-xs text-gray-400">
+                    {itemToEdit ? `Modifying properties for ${itemToEdit.name}` : "Add a new item to your inventory registry"}
+                  </p>
                 </div>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
@@ -154,11 +188,17 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onA
                   <label className="block text-sm font-bold text-gray-700 mb-2">Party Name</label>
                   <input
                     type="text"
+                    list="item-party-names"
                     value={formData.partyName}
                     onChange={(e) => setFormData({ ...formData, partyName: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                     placeholder="e.g. Main Distributor"
                   />
+                  <datalist id="item-party-names">
+                    {partyNames.map((name, i) => (
+                      <option key={i} value={name} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 
@@ -174,8 +214,17 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose, onA
                   type="submit"
                   className="flex-[2] bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
                 >
-                  <PackagePlus className="w-5 h-5" />
-                  Add to Inventory
+                  {itemToEdit ? (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Changes
+                    </>
+                  ) : (
+                    <>
+                      <PackagePlus className="w-5 h-5" />
+                      Add to Inventory
+                    </>
+                  )}
                 </button>
               </div>
             </form>

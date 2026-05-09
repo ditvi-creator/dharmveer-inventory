@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface Booking {
+  id: string;
+  partyName: string;
+  address: string;
+  qty: number;
+}
+
 export interface StockItem {
   id: string;
   name: string;
@@ -17,6 +24,7 @@ export interface StockItem {
   booked: number;
   partyName: string;
   updatedAt: number;
+  bookings?: Booking[];
 }
 
 export type StockAction = 'IN' | 'OUT' | 'BOOK';

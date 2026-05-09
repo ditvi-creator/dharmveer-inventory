@@ -36,6 +36,13 @@ app.get('/api/stock', (req, res) => {
   res.json(db.items);
 });
 
+app.delete('/api/stock', (req, res) => {
+  const db = getDB();
+  db.items = [];
+  saveDB(db);
+  res.json({ success: true });
+});
+
 app.post('/api/stock', (req, res) => {
   const db = getDB();
   const newItem = { ...req.body, id: randomUUID(), updatedAt: Date.now() };
@@ -69,13 +76,6 @@ app.put('/api/stock/:id', (req, res) => {
 app.delete('/api/stock/:id', (req, res) => {
   const db = getDB();
   db.items = db.items.filter((i: any) => i.id !== req.params.id);
-  saveDB(db);
-  res.json({ success: true });
-});
-
-app.delete('/api/stock/all/clear', (req, res) => {
-  const db = getDB();
-  db.items = [];
   saveDB(db);
   res.json({ success: true });
 });
