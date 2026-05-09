@@ -114,7 +114,9 @@ export default function App() {
       await signInWithPopup(auth, provider);
     } catch (err: any) {
       console.error(err);
-      if (err.code === 'auth/unauthorized-domain') {
+      if (err.code === 'auth/popup-closed-by-user') {
+        console.log('Sign-in popup closed by user.');
+      } else if (err.code === 'auth/unauthorized-domain') {
         alert('This domain is not authorized for Google Sign-In. Please add it to your Firebase Console -> Authentication -> Settings -> Authorized domains.');
       } else {
         alert(`Google Sign-In Error: ${err.message}`);
