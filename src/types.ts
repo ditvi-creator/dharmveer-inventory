@@ -23,7 +23,8 @@ export interface StockItem {
   reorderLevel: number;
   booked: number;
   partyName: string;
-  updatedAt: number;
+  updatedAt: any;
+  ownerId?: string;
   bookings?: Booking[];
 }
 

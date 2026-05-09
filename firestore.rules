@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidStockItem(data) {
+      return data.keys().hasAll(['name', 'updatedAt', 'ownerId']) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.updatedAt is timestamp &&
+             data.ownerId == request.auth.uid &&
+             (data.get('size', '') is string) && (data.get('size', '').size() <= 100) &&
+             (data.get('unit', '') is string) && (data.get('unit', '').size() <= 20) &&
+             (data.get('openingStockMP', 0) is number) &&
+             (data.get('openingStockKL', 0) is number) &&
+             (data.get('stockIn', 0) is number) &&
+             (data.get('stockOut', 0) is number) &&
+             (data.get('balance', 0) is number) &&
+             (data.get('reorderLevel', 0) is number) &&
+             (data.get('booked', 0) is number) &&
+             (data.get('partyName', '') is string) && (data.get('partyName', '').size() <= 200) &&
+             (data.get('bookings', []) is list) && data.get('bookings', []).size() <= 100;
+    }
+
+    match /stockItems/{itemId} {
+      allow get: if isSignedIn() && existing().ownerId == request.auth.uid && isValidId(itemId);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      
+      allow create: if isSignedIn() && 
+                    isValidId(itemId) && 
+                    isValidStockItem(incoming()) &&
+                    incoming().updatedAt == request.time;
+                    
+      allow update: if isSignedIn() && 
+                    isValidId(itemId) &&
+                    existing().ownerId == request.auth.uid &&
+                    isValidStockItem(incoming()) &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().updatedAt == request.time;
+                    
+      allow delete: if isSignedIn() && 
+                    isValidId(itemId) &&
+                    existing().ownerId == request.auth.uid;
+    }
+  }
+}

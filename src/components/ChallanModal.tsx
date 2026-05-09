@@ -35,10 +35,10 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
     const opt = {
       margin: 10,
       filename: `challan-${booking.partyName}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
+      image: { type: 'jpeg', quality: 0.95 } as any,
       html2canvas: { scale: 1.5, logging: false, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    } as any;
     html2pdf().set(opt).from(element).save();
   };
 

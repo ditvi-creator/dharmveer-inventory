@@ -1,0 +1,33 @@
+{
+  "entities": {
+    "StockItem": {
+      "title": "StockItem",
+      "description": "An inventory item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "size": { "type": "string" },
+        "unit": { "type": "string" },
+        "openingStockMP": { "type": "number" },
+        "openingStockKL": { "type": "number" },
+        "stockIn": { "type": "number" },
+        "stockOut": { "type": "number" },
+        "balance": { "type": "number" },
+        "reorderLevel": { "type": "number" },
+        "booked": { "type": "number" },
+        "partyName": { "type": "string" },
+        "updatedAt": { "type": "number" },
+        "ownerId": { "type": "string" },
+        "bookings": { "type": "array" }
+      },
+      "required": ["name", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/stockItems/{itemId}": {
+      "schema": { "$ref": "#/entities/StockItem" },
+      "description": "Shared inventory items"
+    }
+  }
+}
