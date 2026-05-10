@@ -85,11 +85,23 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                         {item.unit || 'BOX'}
                       </td>
                       
-                      <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50 bg-gray-50/30">
-                        {item.openingStockMP}
+                      <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50 bg-gray-50/30">
+                        <input
+                          type="number"
+                          value={item.openingStockMP === 0 ? '' : item.openingStockMP}
+                          onChange={(e) => onUpdateItem(item.id, { openingStockMP: e.target.value === '' ? 0 : Number(e.target.value) })}
+                          placeholder="0"
+                          className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-1 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                       </td>
-                      <td className="px-4 py-4 text-sm text-center font-bold border-r border-gray-50">
-                        {item.openingStockKL}
+                      <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50">
+                        <input
+                          type="number"
+                          value={item.openingStockKL === 0 ? '' : item.openingStockKL}
+                          onChange={(e) => onUpdateItem(item.id, { openingStockKL: e.target.value === '' ? 0 : Number(e.target.value) })}
+                          placeholder="0"
+                          className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-1 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                       </td>
                       
                       <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50">
