@@ -86,6 +86,8 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilterStart, setDateFilterStart] = useState('');
   const [dateFilterEnd, setDateFilterEnd] = useState('');
+  const [unitFilter, setUnitFilter] = useState('all');
+  const [partyFilter, setPartyFilter] = useState('all');
 
   const allPartyNames = useMemo(() => {
     const names = new Set<string>();
@@ -96,6 +98,14 @@ export default function App() {
       });
     });
     return Array.from(names).filter(Boolean).sort();
+  }, [items]);
+
+  const allUnits = useMemo(() => {
+    const units = new Set<string>();
+    items.forEach(item => {
+      if (item.unit) units.add(item.unit);
+    });
+    return Array.from(units).filter(Boolean).sort();
   }, [items]);
 
   useEffect(() => {
@@ -390,6 +400,12 @@ export default function App() {
         }
       }
 
+      // 4. Unit filter
+      if (unitFilter !== 'all' && item.unit !== unitFilter) return false;
+
+      // 5. Party Name filter
+      if (partyFilter !== 'all' && item.partyName !== partyFilter) return false;
+
       return true;
     });
 
@@ -405,7 +421,7 @@ export default function App() {
     }
 
     return result;
-  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd]);
+  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, unitFilter, partyFilter]);
 
   const stats = useMemo(() => {
     const totalItems = items.length;
@@ -806,6 +822,28 @@ export default function App() {
               <option value="in-stock">In Stock</option>
               <option value="low-stock">Low Stock</option>
               <option value="out-of-stock">Out of Stock</option>
+            </select>
+
+            <select 
+              value={unitFilter}
+              onChange={(e) => setUnitFilter(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+              <option value="all">All Units</option>
+              {allUnits.map(unit => (
+                <option key={unit} value={unit}>{unit}</option>
+              ))}
+            </select>
+
+            <select 
+              value={partyFilter}
+              onChange={(e) => setPartyFilter(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 max-w-[200px] truncate"
+            >
+              <option value="all">All Parties</option>
+              {allPartyNames.map(party => (
+                <option key={party} value={party}>{party}</option>
+              ))}
             </select>
 
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5">
