@@ -6,7 +6,7 @@
 import React from 'react';
 import { StockItem } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Edit2, Save, X, Plus, Trash2, Printer, AlertCircle } from 'lucide-react';
+import { Edit2, Save, X, Plus, Trash2, Printer, AlertCircle, History } from 'lucide-react';
 import { Booking } from '../types';
 
 interface StockTableProps {
@@ -16,9 +16,10 @@ interface StockTableProps {
   onDeleteItem: (id: string) => void;
   onOpenBookings: (item: StockItem) => void;
   onOpenChallan: (item: StockItem, booking: Booking) => void;
+  onOpenHistory: (item: StockItem) => void;
 }
 
-export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpdateItem, onDeleteItem, onOpenBookings, onOpenChallan }) => {
+export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpdateItem, onDeleteItem, onOpenBookings, onOpenChallan, onOpenHistory }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
@@ -61,9 +62,14 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="hover:bg-gray-50/50 transition-colors group"
+                      className={`hover:bg-gray-50/50 transition-colors group ${isLowStock ? 'bg-red-50/20' : ''}`}
                     >
-                      <td className="px-4 py-4 text-xs text-gray-400 border-r border-gray-50 italic">{index + 1}</td>
+                      <td className="px-4 py-4 text-xs text-gray-400 border-r border-gray-50 italic relative">
+                        {index + 1}
+                        {isLowStock && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                        )}
+                      </td>
                       <td className="px-4 py-4 font-bold text-sm text-gray-900 border-r border-gray-50">
                         {item.name}
                       </td>
@@ -183,10 +189,13 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
 
                       <td className="px-4 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => onEditItem(item)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                          <button onClick={() => onOpenHistory(item)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="View History">
+                            <History className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => onEditItem(item)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Item">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => onDeleteItem(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors">
+                          <button onClick={() => onDeleteItem(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Delete Item">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

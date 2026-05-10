@@ -10,6 +10,13 @@ export interface Booking {
   qty: number;
 }
 
+export interface StockMovement {
+  id: string;
+  type: 'IN' | 'OUT';
+  qty: number;
+  date: number; // timestamp
+}
+
 export interface StockItem {
   id: string;
   name: string;
@@ -26,6 +33,7 @@ export interface StockItem {
   updatedAt: any;
   ownerId?: string;
   bookings?: Booking[];
+  movements?: StockMovement[];
 }
 
 export type StockAction = 'IN' | 'OUT' | 'BOOK';

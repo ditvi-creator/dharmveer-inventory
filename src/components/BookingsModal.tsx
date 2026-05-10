@@ -89,7 +89,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
             </div>
 
             <div className="px-6 py-6 overflow-y-auto max-h-[75vh]">
-              <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_80px_32px] gap-3 mb-2">
+              <div className="hidden md:grid grid-cols-[1.5fr_1.5fr_120px_32px] gap-3 mb-2">
                 <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide">Party Name</div>
                 <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide">Address</div>
                 <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide">Qty</div>
@@ -104,7 +104,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                 </datalist>
 
                 {bookings.map((booking, index) => (
-                  <div key={booking.id} className="flex flex-col md:grid md:grid-cols-[1.5fr_1.5fr_80px_32px] gap-3 items-start md:items-center p-3 md:p-0 bg-white border border-gray-200 md:border-transparent md:bg-transparent rounded-xl md:rounded-none">
+                  <div key={booking.id} className="flex flex-col md:grid md:grid-cols-[1.5fr_1.5fr_120px_32px] gap-3 items-start md:items-center p-3 md:p-0 bg-white border border-gray-200 md:border-transparent md:bg-transparent rounded-xl md:rounded-none">
                     <div className="w-full">
                       <label className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide mb-1 block md:hidden">Party Name</label>
                       <input

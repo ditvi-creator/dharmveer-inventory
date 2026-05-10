@@ -10,6 +10,7 @@ import { ItemModal } from './components/ItemModal';
 import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { BookingsModal } from './components/BookingsModal';
 import { ChallanModal } from './components/ChallanModal';
+import { HistoryModal } from './components/HistoryModal';
 import { StockItem, Booking } from './types';
 import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -17,6 +18,7 @@ import Papa from 'papaparse';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { Toaster, toast } from 'sonner';
 
 enum OperationType {
   CREATE = 'create',
@@ -77,9 +79,13 @@ export default function App() {
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [selectedItemForBookings, setSelectedItemForBookings] = useState<StockItem | null>(null);
+  const [selectedItemForHistory, setSelectedItemForHistory] = useState<StockItem | null>(null);
   const [selectedChallanBooking, setSelectedChallanBooking] = useState<{item: StockItem, booking: Booking} | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilterStart, setDateFilterStart] = useState('');
+  const [dateFilterEnd, setDateFilterEnd] = useState('');
 
   const allPartyNames = useMemo(() => {
     const names = new Set<string>();
@@ -242,8 +248,41 @@ export default function App() {
     const stockIn = merged.stockIn ?? 0;
     const stockOut = merged.stockOut ?? 0;
     const balance = (merged.openingStockMP + merged.openingStockKL + stockIn) - stockOut;
+    const currentReorderLevel = merged.reorderLevel || 0;
 
-    const finalUpdates = { ...updates, balance, updatedAt: serverTimestamp() };
+    if (balance <= currentReorderLevel && item.balance > currentReorderLevel) {
+      toast.warning(`Low Stock Alert: ${item.name}`, {
+        description: `Balance dropped to ${balance} (Reorder level: ${currentReorderLevel})`,
+      });
+    }
+
+    // Track Movements
+    const newMovements = [...(item.movements || [])];
+    
+    if (updates.stockIn !== undefined && updates.stockIn !== item.stockIn) {
+      const diff = updates.stockIn - (item.stockIn || 0);
+      newMovements.unshift({
+        id: Date.now().toString() + '-in',
+        type: 'IN',
+        qty: diff,
+        date: Date.now()
+      });
+    }
+
+    if (updates.stockOut !== undefined && updates.stockOut !== item.stockOut) {
+      const diff = updates.stockOut - (item.stockOut || 0);
+      newMovements.unshift({
+        id: Date.now().toString() + '-out',
+        type: 'OUT',
+        qty: diff,
+        date: Date.now()
+      });
+    }
+
+    // keep last 100 movements
+    const trimmedMovements = newMovements.slice(0, 100);
+
+    const finalUpdates = { ...updates, balance, movements: trimmedMovements, updatedAt: serverTimestamp() };
 
     // Optimistic update
     const previousItems = [...items];
@@ -315,11 +354,44 @@ export default function App() {
   };
 
   const filteredAndSortedItems = useMemo(() => {
-    let result = items.filter(item => 
-      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.size?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.partyName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let result = items.filter(item => {
+      // 1. Search filter
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        item.name?.toLowerCase().includes(searchLower) ||
+        item.size?.toLowerCase().includes(searchLower) ||
+        item.partyName?.toLowerCase().includes(searchLower);
+        
+      if (!matchesSearch) return false;
+
+      // 2. Status filter
+      if (statusFilter !== 'all') {
+        const balance = item.balance || 0;
+        const reorderLevel = item.reorderLevel || 0;
+        
+        if (statusFilter === 'in-stock' && balance <= 0) return false;
+        if (statusFilter === 'low-stock' && (balance > reorderLevel || balance <= 0)) return false;
+        if (statusFilter === 'out-of-stock' && balance > 0) return false;
+      }
+
+      // 3. Date range filter
+      if (dateFilterStart || dateFilterEnd) {
+        // Safe access to updatedAt timestamp
+        const itemDateVal = (item.updatedAt as any)?.toMillis?.() || Date.now();
+        
+        if (dateFilterStart) {
+          const startTimestamp = new Date(dateFilterStart).setHours(0, 0, 0, 0);
+          if (itemDateVal < startTimestamp) return false;
+        }
+        
+        if (dateFilterEnd) {
+          const endTimestamp = new Date(dateFilterEnd).setHours(23, 59, 59, 999);
+          if (itemDateVal > endTimestamp) return false;
+        }
+      }
+
+      return true;
+    });
 
     switch (sortBy) {
       case 'name-asc': result.sort((a, b) => (a.name || '').localeCompare(b.name || '')); break;
@@ -333,7 +405,7 @@ export default function App() {
     }
 
     return result;
-  }, [items, searchTerm, sortBy]);
+  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd]);
 
   const stats = useMemo(() => {
     const totalItems = items.length;
@@ -670,6 +742,7 @@ export default function App() {
       onExportCSV={exportCSV}
       // Assuming layout handles logout if we pass it, but if not we can add a simple button here or inject it
     >
+      <Toaster position="top-right" />
       {/* We can inject Logout in Header via a portal or just float it if Layout doesn't take it... Wait, Layout is shared. Let's add a logout button. */}
       <div className="flex justify-end mb-4">
         <button onClick={logout} className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -710,16 +783,48 @@ export default function App() {
       </div>
 
       {/* Filters & Search */}
-      <div className="space-y-6 mb-8">
-        <div className="relative max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search by item name, size or party..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-          />
+      <div className="space-y-6 mb-8 flex flex-col">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1 max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search by item name, size or party..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+            />
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="in-stock">In Stock</option>
+              <option value="low-stock">Low Stock</option>
+              <option value="out-of-stock">Out of Stock</option>
+            </select>
+
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5">
+              <span className="text-xs font-semibold text-gray-500">Updated:</span>
+              <input 
+                type="date"
+                value={dateFilterStart}
+                onChange={(e) => setDateFilterStart(e.target.value)}
+                className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0"
+              />
+              <span className="text-gray-400">-</span>
+              <input 
+                type="date"
+                value={dateFilterEnd}
+                onChange={(e) => setDateFilterEnd(e.target.value)}
+                className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -743,6 +848,13 @@ export default function App() {
         onDeleteItem={(id) => setItemToDelete(id)}
         onOpenBookings={(item) => setSelectedItemForBookings(item)}
         onOpenChallan={(item, booking) => setSelectedChallanBooking({ item, booking })}
+        onOpenHistory={(item) => setSelectedItemForHistory(item)}
+      />
+
+      <HistoryModal
+        isOpen={!!selectedItemForHistory}
+        onClose={() => setSelectedItemForHistory(null)}
+        item={selectedItemForHistory!}
       />
 
       <ItemModal 
