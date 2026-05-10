@@ -29,6 +29,7 @@ service cloud.firestore {
              data.ownerId == request.auth.uid &&
              (data.get('size', '') is string) && (data.get('size', '').size() <= 100) &&
              (data.get('unit', '') is string) && (data.get('unit', '').size() <= 20) &&
+             (data.get('category', '') is string) && (data.get('category', '').size() <= 100) &&
              (data.get('openingStockMP', 0) is number) &&
              (data.get('openingStockKL', 0) is number) &&
              (data.get('stockIn', 0) is number) &&

@@ -21,6 +21,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
     name: '',
     size: '',
     unit: 'BOX',
+    category: '',
     openingStockMP: 0,
     openingStockKL: 0,
     reorderLevel: 0,
@@ -34,6 +35,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
         name: '', 
         size: '', 
         unit: 'BOX', 
+        category: '',
         openingStockMP: 0, 
         openingStockKL: 0, 
         reorderLevel: 0, 
@@ -47,6 +49,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
         name: itemToEdit.name || '',
         size: itemToEdit.size || '',
         unit: itemToEdit.unit || 'BOX',
+        category: itemToEdit.category || '',
         openingStockMP: itemToEdit.openingStockMP || 0,
         openingStockKL: itemToEdit.openingStockKL || 0,
         reorderLevel: itemToEdit.reorderLevel || 0,
@@ -57,6 +60,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
         name: '', 
         size: '', 
         unit: 'BOX', 
+        category: '',
         openingStockMP: 0, 
         openingStockKL: 0, 
         reorderLevel: 0, 
@@ -143,6 +147,17 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
                     <option value="SET">SET</option>
                     <option value="KG">KG</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Category (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    placeholder="e.g. Wall Tiles"
+                  />
                 </div>
 
                 <div className="p-4 bg-blue-50 rounded-xl md:col-span-2 grid grid-cols-2 gap-4 border border-blue-100">

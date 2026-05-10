@@ -22,6 +22,7 @@ export interface StockItem {
   name: string;
   size: string;
   unit: string;
+  category?: string;
   openingStockMP: number;
   openingStockKL: number;
   stockIn: number;

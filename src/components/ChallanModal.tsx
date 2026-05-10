@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Printer, X, Download, Package } from 'lucide-react';
+import { Printer, X, Download, Package, Loader2 } from 'lucide-react';
 import { StockItem, Booking } from '../types';
 import html2pdf from 'html2pdf.js';
 
@@ -13,6 +13,7 @@ interface ChallanModalProps {
 
 export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, booking, item }) => {
   const componentRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = React.useState(false);
 
   const challanNo = React.useMemo(() => {
     return 'CH-' + Math.floor(100000 + Math.random() * 900000);
@@ -28,18 +29,25 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
 
   if (!booking || !item) return null;
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const element = componentRef.current;
     if (!element) return;
     
-    const opt = {
-      margin: 10,
-      filename: `challan-${booking.partyName}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 } as any,
-      html2canvas: { scale: 1.5, logging: false, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    } as any;
-    html2pdf().set(opt).from(element).save();
+    setIsExporting(true);
+    try {
+      const opt = {
+        margin: 10,
+        filename: `challan-${booking.partyName}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 } as any,
+        html2canvas: { scale: 1.5, logging: false, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      } as any;
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handlePrint = () => {
@@ -220,10 +228,20 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               </button>
               <button
                 onClick={handleExportPDF}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                disabled={isExporting}
+                className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Download className="w-4 h-4" />
-                Export PDF
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Export PDF
+                  </>
+                )}
               </button>
               <button
                 onClick={() => handlePrint()}

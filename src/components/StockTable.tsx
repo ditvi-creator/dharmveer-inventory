@@ -70,8 +70,13 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
                         )}
                       </td>
-                      <td className="px-4 py-4 font-bold text-sm text-gray-900 border-r border-gray-50">
-                        {item.name}
+                      <td className="px-4 py-4 border-r border-gray-50">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-gray-900">{item.name}</span>
+                          {item.category && (
+                            <span className="text-sm text-gray-500 mt-0.5">{item.category}</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-600 border-r border-gray-50">
                         {item.size}

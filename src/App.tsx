@@ -88,6 +88,7 @@ export default function App() {
   const [dateFilterEnd, setDateFilterEnd] = useState('');
   const [unitFilter, setUnitFilter] = useState('all');
   const [partyFilter, setPartyFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   const allPartyNames = useMemo(() => {
     const names = new Set<string>();
@@ -106,6 +107,14 @@ export default function App() {
       if (item.unit) units.add(item.unit);
     });
     return Array.from(units).filter(Boolean).sort();
+  }, [items]);
+
+  const allCategories = useMemo(() => {
+    const categories = new Set<string>();
+    items.forEach(item => {
+      if (item.category) categories.add(item.category);
+    });
+    return Array.from(categories).filter(Boolean).sort();
   }, [items]);
 
   useEffect(() => {
@@ -406,6 +415,9 @@ export default function App() {
       // 5. Party Name filter
       if (partyFilter !== 'all' && item.partyName !== partyFilter) return false;
 
+      // 6. Category filter
+      if (categoryFilter !== 'all' && item.category !== categoryFilter) return false;
+
       return true;
     });
 
@@ -421,7 +433,7 @@ export default function App() {
     }
 
     return result;
-  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, unitFilter, partyFilter]);
+  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, unitFilter, partyFilter, categoryFilter]);
 
   const stats = useMemo(() => {
     const totalItems = items.length;
@@ -843,6 +855,17 @@ export default function App() {
               <option value="all">All Parties</option>
               {allPartyNames.map(party => (
                 <option key={party} value={party}>{party}</option>
+              ))}
+            </select>
+
+            <select 
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 max-w-[200px] truncate"
+            >
+              <option value="all">All Categories</option>
+              {allCategories.map(category => (
+                <option key={category} value={category}>{category}</option>
               ))}
             </select>
 
