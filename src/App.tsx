@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Layout } from './components/Layout';
 import { StockTable } from './components/StockTable';
 import { ItemModal } from './components/ItemModal';
@@ -86,7 +86,7 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilterStart, setDateFilterStart] = useState('');
   const [dateFilterEnd, setDateFilterEnd] = useState('');
-  const [unitFilter, setUnitFilter] = useState('all');
+  const [bookingFilter, setBookingFilter] = useState('all-bookings');
   const [partyFilter, setPartyFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
@@ -101,14 +101,6 @@ export default function App() {
     return Array.from(names).filter(Boolean).sort();
   }, [items]);
 
-  const allUnits = useMemo(() => {
-    const units = new Set<string>();
-    items.forEach(item => {
-      if (item.unit) units.add(item.unit);
-    });
-    return Array.from(units).filter(Boolean).sort();
-  }, [items]);
-
   const allCategories = useMemo(() => {
     const categories = new Set<string>();
     items.forEach(item => {
@@ -116,6 +108,24 @@ export default function App() {
     });
     return Array.from(categories).filter(Boolean).sort();
   }, [items]);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'i') {
+        e.preventDefault();
+        openAddModal();
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -409,8 +419,9 @@ export default function App() {
         }
       }
 
-      // 4. Unit filter
-      if (unitFilter !== 'all' && item.unit !== unitFilter) return false;
+      // 4. Booking filter
+      if (bookingFilter === 'no-bookings' && item.bookings && item.bookings.length > 0) return false;
+      if (bookingFilter === 'has-bookings' && (!item.bookings || item.bookings.length === 0)) return false;
 
       // 5. Party Name filter
       if (partyFilter !== 'all' && item.partyName !== partyFilter) return false;
@@ -433,7 +444,7 @@ export default function App() {
     }
 
     return result;
-  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, unitFilter, partyFilter, categoryFilter]);
+  }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, bookingFilter, partyFilter, categoryFilter]);
 
   const stats = useMemo(() => {
     const totalItems = items.length;
@@ -816,8 +827,9 @@ export default function App() {
           <div className="relative flex-1 max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
+              ref={searchInputRef}
               type="text" 
-              placeholder="Search by item name, size or party..." 
+              placeholder="Search by item name, size or party... (Ctrl+S)" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
@@ -837,14 +849,12 @@ export default function App() {
             </select>
 
             <select 
-              value={unitFilter}
-              onChange={(e) => setUnitFilter(e.target.value)}
+              value={bookingFilter}
+              onChange={(e) => setBookingFilter(e.target.value)}
               className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
-              <option value="all">All Units</option>
-              {allUnits.map(unit => (
-                <option key={unit} value={unit}>{unit}</option>
-              ))}
+              <option value="all-bookings">All Bookings</option>
+              <option value="no-bookings">No Bookings</option>
             </select>
 
             <select 
