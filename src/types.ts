@@ -8,6 +8,10 @@ export interface Booking {
   partyName: string;
   address: string;
   qty: number;
+  dateOfBooking?: string;
+  dateOfSend?: string;
+  reminderActive?: boolean;
+  reminderDismissed?: boolean;
 }
 
 export interface StockMovement {

@@ -12,7 +12,7 @@ import { BookingsModal } from './components/BookingsModal';
 import { ChallanModal } from './components/ChallanModal';
 import { HistoryModal } from './components/HistoryModal';
 import { StockItem, Booking } from './types';
-import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic } from 'lucide-react';
+import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Papa from 'papaparse';
 import { auth, db } from './firebase';
@@ -91,6 +91,8 @@ export default function App() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [activeReminderPopup, setActiveReminderPopup] = useState<{item: StockItem, booking: Booking} | null>(null);
+  const [dismissedReminders, setDismissedReminders] = useState<{item: StockItem, booking: Booking}[]>([]);
 
   const handleMicClick = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -153,6 +155,82 @@ export default function App() {
     });
     return Array.from(categories).filter(Boolean).sort();
   }, [items]);
+
+  useEffect(() => {
+    const checkReminders = () => {
+      const now = new Date();
+      let foundPopup = false;
+      const newDismissed: {item: StockItem, booking: Booking}[] = [];
+      
+      items.forEach(item => {
+        item.bookings?.forEach(b => {
+          if (b.reminderActive && b.dateOfSend) {
+            const sendDate = new Date(b.dateOfSend);
+            if (now >= sendDate) {
+              if (!b.reminderDismissed) {
+                if (!foundPopup) {
+                  // Only set if we aren't already showing one
+                  setActiveReminderPopup(prev => prev || { item, booking: b });
+                  foundPopup = true;
+                }
+              } else {
+                newDismissed.push({ item, booking: b });
+              }
+            }
+          }
+        });
+      });
+      setDismissedReminders(newDismissed);
+    };
+
+    // Check immediately and then set interval
+    checkReminders();
+    const interval = setInterval(checkReminders, 1000);
+
+    return () => clearInterval(interval);
+  }, [items]);
+
+  useEffect(() => {
+    if (activeReminderPopup) {
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        oscillator.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.15); // C6
+        
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.5);
+      } catch (e) {
+        console.error('Audio playback failed', e);
+      }
+    }
+  }, [activeReminderPopup]);
+
+  const handleDismissReminder = (item: StockItem, booking: Booking) => {
+    const updatedBookings = item.bookings?.map(b => 
+      b.id === booking.id ? { ...b, reminderDismissed: true } : b
+    ) || [];
+    updateItem(item.id, { bookings: updatedBookings });
+    setActiveReminderPopup(null);
+  };
+
+  const handleCompleteReminder = (item: StockItem, booking: Booking) => {
+    const updatedBookings = item.bookings?.map(b => 
+      b.id === booking.id ? { ...b, reminderActive: false, reminderDismissed: false } : b
+    ) || [];
+    updateItem(item.id, { bookings: updatedBookings });
+    setActiveReminderPopup(prev => (prev?.booking.id === booking.id) ? null : prev);
+  };
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -827,6 +905,75 @@ export default function App() {
       // Assuming layout handles logout if we pass it, but if not we can add a simple button here or inject it
     >
       <Toaster position="top-right" />
+      
+      {/* Reminder Banner */}
+      {dismissedReminders.length > 0 && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <h3 className="font-bold text-red-800 text-sm tracking-wide">PENDING REMINDERS ({dismissedReminders.length})</h3>
+          </div>
+          <div className="flex flex-col gap-2">
+            {dismissedReminders.map((r, i) => (
+              <div key={`${r.item.id}-${r.booking.id}-${i}`} className="flex items-center justify-between text-sm bg-white p-3 rounded-lg border border-red-100 shadow-sm">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-900">{r.item.name} - {r.booking.partyName || 'Unknown Party'}</span>
+                  <span className="text-gray-500 text-xs">Scheduled Send: {new Date(r.booking.dateOfSend!).toLocaleString()}</span>
+                </div>
+                <button 
+                  onClick={() => handleCompleteReminder(r.item, r.booking)}
+                  className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-xs font-bold transition-colors"
+                >
+                  Mark Done
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reminder Popup */}
+      <AnimatePresence>
+        {activeReminderPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-50 flex flex-col overflow-hidden"
+            >
+              <div className="bg-amber-500 p-6 flex flex-col items-center justify-center text-center">
+                <div className="bg-white/20 p-3 rounded-full mb-3">
+                  <BellRing className="w-8 h-8 text-white animate-pulse" />
+                </div>
+                <h2 className="text-xl font-bold text-white tracking-tight">Time to Send!</h2>
+              </div>
+              <div className="p-6 flex flex-col items-center text-center gap-2">
+                <p className="text-gray-900 font-bold text-lg">{activeReminderPopup.booking.partyName || 'Unknown Party'}</p>
+                <p className="text-gray-600 font-medium">Item: {activeReminderPopup.item.name}</p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Amount: <span className="font-bold text-gray-800">{activeReminderPopup.booking.qty}</span>
+                </p>
+                <div className="flex flex-col w-full gap-2 mt-6">
+                  <button 
+                    onClick={() => handleCompleteReminder(activeReminderPopup.item, activeReminderPopup.booking)}
+                    className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors"
+                  >
+                    Mark as Done
+                  </button>
+                  <button 
+                    onClick={() => handleDismissReminder(activeReminderPopup.item, activeReminderPopup.booking)}
+                    className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                  >
+                    Close & Keep in Banner
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* We can inject Logout in Header via a portal or just float it if Layout doesn't take it... Wait, Layout is shared. Let's add a logout button. */}
       <div className="flex justify-end mb-4">
         <button onClick={logout} className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">

@@ -6,7 +6,7 @@
 import React from 'react';
 import { StockItem } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Edit2, Save, X, Plus, Trash2, Printer, AlertCircle, History } from 'lucide-react';
+import { Edit2, Save, X, Plus, Trash2, Printer, AlertCircle, History, Calendar, Clock, Bell, BellRing } from 'lucide-react';
 import { Booking } from '../types';
 
 interface StockTableProps {
@@ -170,6 +170,19 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                                         >
                                           <Printer className="w-3.5 h-3.5" />
                                         </button>
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const updatedBookings = item.bookings?.map(b => 
+                                              b.id === booking.id ? { ...b, reminderActive: !b.reminderActive } : b
+                                            ) || [];
+                                            onUpdateItem(item.id, { bookings: updatedBookings });
+                                          }}
+                                          className={`${booking.reminderActive ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 hover:text-amber-500'} transition-colors p-0.5`}
+                                          title={booking.reminderActive ? "Cancel Reminder" : "Set Reminder"}
+                                        >
+                                          {booking.reminderActive ? <BellRing className="w-3.5 h-3.5" /> : <Bell className="w-3.5 h-3.5" />}
+                                        </button>
                                       </div>
                                       <span className="text-[#2962d9] font-bold bg-blue-50 px-1.5 py-0.5 rounded text-[15px] whitespace-nowrap">
                                         Qty: {booking.qty}
@@ -177,6 +190,17 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                                     </div>
                                     {booking.address && (
                                       <div className="text-gray-500 text-[14px] leading-snug break-words">{booking.address}</div>
+                                    )}
+                                    {booking.dateOfSend && (
+                                      <div className="mt-2 pt-2 border-t border-gray-200/50 flex flex-col gap-1 text-[#6b7280] text-[12px]">
+                                        <div className="flex items-center gap-1.5">
+                                          <Calendar className="w-3.5 h-3.5 shrink-0" />
+                                          <span className="font-medium">Send Date & Time:</span>
+                                        </div>
+                                        <div className="text-gray-900 font-medium pl-5">
+                                          {new Date(booking.dateOfSend).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
                                 ))}
