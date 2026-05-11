@@ -12,8 +12,8 @@ import { BookingsModal } from './components/BookingsModal';
 import { ChallanModal } from './components/ChallanModal';
 import { HistoryModal } from './components/HistoryModal';
 import { StockItem, Booking } from './types';
-import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import Papa from 'papaparse';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
@@ -89,6 +89,7 @@ export default function App() {
   const [bookingFilter, setBookingFilter] = useState('all-bookings');
   const [partyFilter, setPartyFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   const allPartyNames = useMemo(() => {
     const names = new Set<string>();
@@ -823,79 +824,147 @@ export default function App() {
 
       {/* Filters & Search */}
       <div className="space-y-6 mb-8 flex flex-col">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1 max-w-xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input 
-              ref={searchInputRef}
-              type="text" 
-              placeholder="Search by item name, size or party... (Ctrl+S)" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-            />
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-            <select 
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="in-stock">In Stock</option>
-              <option value="low-stock">Low Stock</option>
-              <option value="out-of-stock">Out of Stock</option>
-            </select>
-
-            <select 
-              value={bookingFilter}
-              onChange={(e) => setBookingFilter(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-            >
-              <option value="all-bookings">All Bookings</option>
-              <option value="no-bookings">No Bookings</option>
-            </select>
-
-            <select 
-              value={partyFilter}
-              onChange={(e) => setPartyFilter(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 max-w-[200px] truncate"
-            >
-              <option value="all">All Parties</option>
-              {allPartyNames.map(party => (
-                <option key={party} value={party}>{party}</option>
-              ))}
-            </select>
-
-            <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 max-w-[200px] truncate"
-            >
-              <option value="all">All Categories</option>
-              {allCategories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5">
-              <span className="text-xs font-semibold text-gray-500">Updated:</span>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1 max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input 
-                type="date"
-                value={dateFilterStart}
-                onChange={(e) => setDateFilterStart(e.target.value)}
-                className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0"
-              />
-              <span className="text-gray-400">-</span>
-              <input 
-                type="date"
-                value={dateFilterEnd}
-                onChange={(e) => setDateFilterEnd(e.target.value)}
-                className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0"
+                ref={searchInputRef}
+                type="text" 
+                placeholder="Search by item name, size or party... (Ctrl+S)" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
               />
             </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-6 py-4 rounded-xl border text-sm font-medium transition-all ${
+                showFilters 
+                ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+              {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold ml-1">
+                  {
+                    (statusFilter !== 'all' ? 1 : 0) +
+                    (bookingFilter !== 'all-bookings' ? 1 : 0) +
+                    (partyFilter !== 'all' ? 1 : 0) +
+                    (categoryFilter !== 'all' ? 1 : 0) +
+                    (dateFilterStart || dateFilterEnd ? 1 : 0)
+                  }
+                </span>
+              )}
+            </button>
           </div>
+          
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-5 bg-white border border-gray-200 rounded-xl flex flex-wrap items-center gap-6 shadow-sm mt-1">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Status</label>
+                    <select 
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="in-stock">In Stock</option>
+                      <option value="low-stock">Low Stock</option>
+                      <option value="out-of-stock">Out of Stock</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bookings</label>
+                    <select 
+                      value={bookingFilter}
+                      onChange={(e) => setBookingFilter(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors"
+                    >
+                      <option value="all-bookings">All Bookings</option>
+                      <option value="no-bookings">No Bookings</option>
+                      <option value="has-bookings">Has Bookings</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Party</label>
+                    <select 
+                      value={partyFilter}
+                      onChange={(e) => setPartyFilter(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors max-w-[160px] truncate"
+                    >
+                      <option value="all">All Parties</option>
+                      {allPartyNames.map(party => (
+                        <option key={party} value={party}>{party}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Category</label>
+                    <select 
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors max-w-[160px] truncate"
+                    >
+                      <option value="all">All Categories</option>
+                      {allCategories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Updated Date</label>
+                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 focus-within:bg-white transition-colors">
+                      <input 
+                        type="date"
+                        value={dateFilterStart}
+                        onChange={(e) => setDateFilterStart(e.target.value)}
+                        className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0 w-[125px]"
+                      />
+                      <span className="text-gray-400 text-xs">-</span>
+                      <input 
+                        type="date"
+                        value={dateFilterEnd}
+                        onChange={(e) => setDateFilterEnd(e.target.value)}
+                        className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0 w-[125px]"
+                      />
+                    </div>
+                  </div>
+                  
+                  {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
+                    <div className="flex flex-col gap-2 ml-auto self-end">
+                      <button
+                        onClick={() => {
+                          setStatusFilter('all');
+                          setBookingFilter('all-bookings');
+                          setPartyFilter('all');
+                          setCategoryFilter('all');
+                          setDateFilterStart('');
+                          setDateFilterEnd('');
+                        }}
+                        className="text-xs font-semibold text-gray-500 hover:text-red-600 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-100 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" /> Clear All Filters
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
