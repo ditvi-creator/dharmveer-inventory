@@ -12,7 +12,7 @@ import { BookingsModal } from './components/BookingsModal';
 import { ChallanModal } from './components/ChallanModal';
 import { HistoryModal } from './components/HistoryModal';
 import { StockItem, Booking } from './types';
-import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X } from 'lucide-react';
+import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Papa from 'papaparse';
 import { auth, db } from './firebase';
@@ -90,6 +90,50 @@ export default function App() {
   const [partyFilter, setPartyFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  const handleMicClick = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast.error('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast.info('Listening...', { duration: 2000 });
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchTerm(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      if (event.error === 'not-allowed') {
+        toast.error('Microphone access denied. Please allow microphone permissions in your browser.', { duration: 4000 });
+      } else if (event.error !== 'no-speech') {
+        toast.error(`Speech recognition error: ${event.error}`);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
 
   const allPartyNames = useMemo(() => {
     const names = new Set<string>();
@@ -837,6 +881,19 @@ export default function App() {
                 className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
               />
             </div>
+            
+            <button
+              onClick={handleMicClick}
+              className={`flex items-center justify-center p-4 rounded-xl border transition-all ${
+                isListening
+                  ? 'bg-red-50 border-red-200 text-red-500 animate-pulse'
+                  : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              }`}
+              title={isListening ? "Stop listening" : "Search by voice"}
+            >
+              <Mic className="w-5 h-5" />
+            </button>
+
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-6 py-4 rounded-xl border text-sm font-medium transition-all ${
@@ -864,9 +921,13 @@ export default function App() {
           <AnimatePresence>
             {showFilters && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
+                initial={{ height: 0, opacity: 0, y: -10 }}
+                animate={{ height: 'auto', opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -10 }}
+                transition={{ 
+                  duration: 0.3, 
+                  ease: [0.04, 0.62, 0.23, 0.98]
+                }}
                 className="overflow-hidden"
               >
                 <div className="p-5 bg-white border border-gray-200 rounded-xl flex flex-wrap items-center gap-6 shadow-sm mt-1">
