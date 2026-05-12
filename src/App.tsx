@@ -190,30 +190,58 @@ export default function App() {
     return () => clearInterval(interval);
   }, [items]);
 
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
   useEffect(() => {
+    let playInterval: NodeJS.Timeout;
+
     if (activeReminderPopup) {
-      try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-        oscillator.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.15); // C6
-        
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
-        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
-        
-        oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.5);
-      } catch (e) {
-        console.error('Audio playback failed', e);
+      if (!audioCtxRef.current) {
+        try {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        } catch (e) {
+          console.error(e);
+        }
       }
+
+      const playSound = () => {
+        if (!audioCtxRef.current) return;
+        try {
+          // Resume if suspended
+          if (audioCtxRef.current.state === 'suspended') {
+            audioCtxRef.current.resume();
+          }
+
+          const oscillator = audioCtxRef.current.createOscillator();
+          const gainNode = audioCtxRef.current.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtxRef.current.destination);
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(880, audioCtxRef.current.currentTime); // A5
+          oscillator.frequency.setValueAtTime(1046.50, audioCtxRef.current.currentTime + 0.15); // C6
+          
+          gainNode.gain.setValueAtTime(0, audioCtxRef.current.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.5, audioCtxRef.current.currentTime + 0.05);
+          gainNode.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 0.4);
+          
+          oscillator.start(audioCtxRef.current.currentTime);
+          oscillator.stop(audioCtxRef.current.currentTime + 0.5);
+        } catch (e) {
+          console.error('Audio playback failed', e);
+        }
+      };
+
+      playSound(); // Play immediately
+      playInterval = setInterval(playSound, 2000); // Play every 2 seconds
     }
+
+    return () => {
+      if (playInterval) {
+        clearInterval(playInterval);
+      }
+    };
   }, [activeReminderPopup]);
 
   const handleDismissReminder = (item: StockItem, booking: Booking) => {

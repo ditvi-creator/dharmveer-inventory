@@ -168,20 +168,7 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                                           className="text-gray-400 hover:text-[#2962d9] transition-colors p-0.5"
                                           title="Print Delivery Challan"
                                         >
-                                          <Printer className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            const updatedBookings = item.bookings?.map(b => 
-                                              b.id === booking.id ? { ...b, reminderActive: !b.reminderActive } : b
-                                            ) || [];
-                                            onUpdateItem(item.id, { bookings: updatedBookings });
-                                          }}
-                                          className={`${booking.reminderActive ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 hover:text-amber-500'} transition-colors p-0.5`}
-                                          title={booking.reminderActive ? "Cancel Reminder" : "Set Reminder"}
-                                        >
-                                          {booking.reminderActive ? <BellRing className="w-3.5 h-3.5" /> : <Bell className="w-3.5 h-3.5" />}
+                                          <Printer className="w-[20px] h-[20px] bg-white rounded-none ml-[10px]" />
                                         </button>
                                       </div>
                                       <span className="text-[#2962d9] font-bold bg-blue-50 px-1.5 py-0.5 rounded text-[15px] whitespace-nowrap">
@@ -197,8 +184,23 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                                           <Calendar className="w-3.5 h-3.5 shrink-0" />
                                           <span className="font-medium">Send Date & Time:</span>
                                         </div>
-                                        <div className="text-gray-900 font-medium pl-5">
-                                          {new Date(booking.dateOfSend).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                                        <div className="flex items-center justify-between pl-5">
+                                          <div className="text-gray-900 font-medium">
+                                            {new Date(booking.dateOfSend).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                                          </div>
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const updatedBookings = item.bookings?.map(b => 
+                                                b.id === booking.id ? { ...b, reminderActive: !b.reminderActive } : b
+                                              ) || [];
+                                              onUpdateItem(item.id, { bookings: updatedBookings });
+                                            }}
+                                            className={`${booking.reminderActive ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 hover:text-amber-500'} transition-colors p-0.5`}
+                                            title={booking.reminderActive ? "Cancel Reminder" : "Set Reminder"}
+                                          >
+                                            {booking.reminderActive ? <BellRing className="w-[20px] h-[20px] mr-[5px]" /> : <Bell className="w-[20px] h-[20px] mr-[5px]" />}
+                                          </button>
                                         </div>
                                       </div>
                                     )}

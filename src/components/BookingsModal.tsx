@@ -114,12 +114,15 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
   }, [item, isOpen]);
 
   const addBooking = () => {
+    const now = new Date();
+    const formattedNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    
     const newBooking: Booking = {
       id: Math.random().toString(36).substr(2, 9),
       partyName: '',
       address: '',
       qty: 0,
-      dateOfBooking: '',
+      dateOfBooking: formattedNow,
       dateOfSend: '',
     };
     setBookings([...bookings, newBooking]);
@@ -144,6 +147,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
         ...b,
         dateOfBooking: b.dateOfBooking || formattedNow
       }));
+      setBookings(updatedBookings);
       onSave(item.id, updatedBookings);
       onClose();
     }
@@ -270,10 +274,10 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                         }}
                         timeContainerStyle={{
                           width: '100px',
-                          paddingLeft: '1px',
-                          marginRight: '0px',
+                          paddingRight: '12px',
+                          marginRight: '-10px',
                           marginLeft: '-7px',
-                          paddingRight: '-10px'
+                          paddingLeft: '10px'
                         }}
                       />
                     </div>
