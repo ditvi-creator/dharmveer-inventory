@@ -67,13 +67,9 @@ const DateTimeInput = ({
                onChange={e => handleTimeChange(hour12, e.target.value, ampm)}
                className="bg-transparent focus:outline-none cursor-pointer appearance-none text-center outline-none min-w-[20px]"
              >
-               {['00', '15', '30', '45'].map(m => (
+               {Array.from({length: 60}, (_, i) => i.toString().padStart(2, '0')).map(m => (
                  <option key={m} value={m}>{m}</option>
                ))}
-               {/* Include current minute if it's not one of the standard intervals */}
-               {!['00', '15', '30', '45'].includes(minute) && (
-                 <option value={minute}>{minute}</option>
-               )}
              </select>
              <select 
                value={ampm} 

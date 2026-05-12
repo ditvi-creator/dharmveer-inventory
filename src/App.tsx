@@ -233,6 +233,7 @@ export default function App() {
   };
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const filteredItemsRef = useRef<StockItem[]>([]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -243,6 +244,12 @@ export default function App() {
       if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         searchInputRef.current?.focus();
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        if (filteredItemsRef.current.length > 0) {
+          setSelectedItemForBookings(filteredItemsRef.current[0]);
+        }
       }
     };
 
@@ -566,6 +573,7 @@ export default function App() {
       case 'reorder-desc': result.sort((a, b) => (b.reorderLevel || 0) - (a.reorderLevel || 0)); break;
     }
 
+    filteredItemsRef.current = result;
     return result;
   }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, bookingFilter, partyFilter, categoryFilter]);
 
