@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Printer, X, Download, Package, Loader2 } from 'lucide-react';
+import { Printer, X, Download, Package, Loader2, MessageCircle } from 'lucide-react';
 import { StockItem, Booking } from '../types';
 import html2pdf from 'html2pdf.js';
+import { toJpeg } from 'html-to-image';
+import { toast } from 'sonner';
 
 interface ChallanModalProps {
   isOpen: boolean;
@@ -14,10 +16,11 @@ interface ChallanModalProps {
 export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, booking, item }) => {
   const componentRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [isSharing, setIsSharing] = React.useState(false);
 
   const challanNo = React.useMemo(() => {
-    return 'CH-' + Math.floor(100000 + Math.random() * 900000);
-  }, [isOpen]);
+    return booking?.challanNo || '';
+  }, [isOpen, booking]);
 
   const currentDate = React.useMemo(() => {
     return new Date().toLocaleDateString('en-GB', {
@@ -47,6 +50,39 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
       console.error('Error exporting PDF:', error);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    const element = componentRef.current;
+    if (!element) return;
+
+    setIsSharing(true);
+    try {
+      const dataUrl = await toJpeg(element, { quality: 0.95, backgroundColor: '#ffffff', skipFonts: true });
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `challan-${challanNo}.jpg`, { type: 'image/jpeg' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Delivery Challan - ${challanNo}`,
+          text: `Delivery Challan for ${booking.partyName}`,
+          files: [file]
+        });
+      } else {
+        // Fallback to downloading
+        const link = document.createElement('a');
+        link.download = `challan-${challanNo}.jpg`;
+        link.href = dataUrl;
+        link.click();
+        toast.success("JPG Downloaded! You can share it to WhatsApp manually.");
+      }
+    } catch (error) {
+      console.error('Error sharing to WhatsApp:', error);
+      toast.error("Could not share. Try again.");
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -144,12 +180,8 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
             <div className="px-6 py-2">
               <div ref={componentRef} id="challan-content" className="bg-[#f8f9fa] border border-[#e5e7eb] rounded-xl overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="bg-[#2962d9] p-5 flex items-center justify-between text-[#ffffff]">
-                  <div className="flex items-center gap-2">
-                    <Package className="w-6 h-6" />
-                    <span className="text-[20px] font-bold tracking-wide">Dharmveer Inventory</span>
-                  </div>
-                  <div className="text-[12px] font-bold tracking-wider uppercase">
+                <div className="bg-[#2962d9] p-5 flex items-center justify-center text-[#ffffff]">
+                  <div className="text-[20px] font-bold tracking-wider uppercase">
                     Delivery Challan
                   </div>
                 </div>
@@ -225,6 +257,23 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors"
               >
                 Close
+              </button>
+              <button
+                onClick={handleShareWhatsApp}
+                disabled={isSharing}
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#25D366] text-white rounded-[8px] text-[15px] font-medium hover:bg-[#128C7E] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSharing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Preparing...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-[20px] h-[20px]" />
+                    Share WhatsApp
+                  </>
+                )}
               </button>
               <button
                 onClick={handleExportPDF}

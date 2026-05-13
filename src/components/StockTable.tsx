@@ -19,6 +19,40 @@ interface StockTableProps {
   onOpenHistory: (item: StockItem) => void;
 }
 
+export const MovementInput = ({ currentTotal, onAdd }: { currentTotal: number, onAdd: (val: number) => void }) => {
+  const [val, setVal] = React.useState('');
+
+  const commitValue = () => {
+    if (val !== '' && !isNaN(Number(val)) && Number(val) !== 0) {
+      onAdd(Number(val));
+      setVal('');
+    } else {
+      setVal('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      commitValue();
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="text-[10px] text-gray-400 font-medium mb-0.5 leading-none">Tot: {currentTotal}</div>
+      <input
+        type="number"
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={commitValue}
+        placeholder="+0"
+        className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-0.5 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      />
+    </div>
+  );
+};
+
 export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpdateItem, onDeleteItem, onOpenBookings, onOpenChallan, onOpenHistory }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -105,22 +139,16 @@ export const StockTable: React.FC<StockTableProps> = ({ items, onEditItem, onUpd
                       </td>
                       
                       <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50">
-                        <input
-                          type="number"
-                          value={item.stockIn === 0 ? '' : item.stockIn}
-                          onChange={(e) => onUpdateItem(item.id, { stockIn: e.target.value === '' ? 0 : Number(e.target.value) })}
-                          placeholder="0"
-                          className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-1 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        <MovementInput 
+                          currentTotal={item.stockIn || 0} 
+                          onAdd={(val) => onUpdateItem(item.id, { stockIn: (item.stockIn || 0) + val })} 
                         />
                       </td>
 
                       <td className="px-2 py-4 text-sm text-center font-bold border-r border-gray-50">
-                        <input
-                          type="number"
-                          value={item.stockOut === 0 ? '' : item.stockOut}
-                          onChange={(e) => onUpdateItem(item.id, { stockOut: e.target.value === '' ? 0 : Number(e.target.value) })}
-                          placeholder="0"
-                          className="w-16 text-center border border-transparent hover:border-gray-200 focus:border-blue-500 focus:bg-white rounded py-1 px-1 text-sm bg-transparent font-bold transition-all outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        <MovementInput 
+                          currentTotal={item.stockOut || 0} 
+                          onAdd={(val) => onUpdateItem(item.id, { stockOut: (item.stockOut || 0) + val })} 
                         />
                       </td>
 

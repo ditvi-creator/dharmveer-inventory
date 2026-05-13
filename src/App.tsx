@@ -732,6 +732,29 @@ export default function App() {
     });
   };
 
+  const handleOpenChallan = async (item: StockItem, booking: Booking) => {
+    let currentBooking = booking;
+    if (typeof booking.challanNo === 'undefined') {
+      let maxChallan = 0;
+      items.forEach(i => {
+        i.bookings?.forEach(b => {
+          if (b.challanNo && b.challanNo > maxChallan) {
+            maxChallan = b.challanNo;
+          }
+        });
+      });
+      const newChallanNo = maxChallan + 1;
+      
+      const updatedBookings = item.bookings?.map(b => 
+        b.id === booking.id ? { ...b, challanNo: newChallanNo } : b
+      ) || [];
+      
+      currentBooking = { ...booking, challanNo: newChallanNo };
+      await updateItem(item.id, { bookings: updatedBookings });
+    }
+    setSelectedChallanBooking({ item, booking: currentBooking });
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
@@ -1223,7 +1246,7 @@ export default function App() {
         onUpdateItem={updateItem}
         onDeleteItem={(id) => setItemToDelete(id)}
         onOpenBookings={(item) => setSelectedItemForBookings(item)}
-        onOpenChallan={(item, booking) => setSelectedChallanBooking({ item, booking })}
+        onOpenChallan={handleOpenChallan}
         onOpenHistory={(item) => setSelectedItemForHistory(item)}
       />
 

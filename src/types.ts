@@ -12,6 +12,7 @@ export interface Booking {
   dateOfSend?: string;
   reminderActive?: boolean;
   reminderDismissed?: boolean;
+  challanNo?: number;
 }
 
 export interface StockMovement {
