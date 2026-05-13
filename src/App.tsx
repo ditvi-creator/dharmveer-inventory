@@ -67,6 +67,155 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+function LandingPage({ onSignIn }: { onSignIn: () => void }) {
+  return (
+    <div className="min-h-screen bg-[#fafafa] font-sans overflow-hidden relative">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <motion.div 
+          animate={{ x: [0, 100, 0], y: [0, -50, 0], rotate: [0, 45, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 blur-[100px]"
+        />
+        <motion.div 
+          animate={{ x: [0, -100, 0], y: [0, 50, 0], rotate: [0, -45, 0] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] rounded-full bg-indigo-400/10 blur-[120px]"
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-400/5 blur-[150px]"
+        />
+      </div>
+
+      <nav className="relative z-10 flex items-center justify-between px-8 py-5 bg-white/70 backdrop-blur-md border-b border-gray-100 sticky top-0">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-2"
+        >
+          <div className="bg-[#1a56db] rounded p-1.5 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <PackageCheck className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold text-[17px] text-gray-900 tracking-tight">Dharmveer Inventory</span>
+        </motion.div>
+        <motion.button 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onSignIn} 
+          className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          Sign In
+        </motion.button>
+      </nav>
+
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-20 flex flex-col items-center text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100/50 text-blue-600 font-medium text-sm mb-8 shadow-sm"
+        >
+          <ShieldCheck className="w-4 h-4" />
+          Secure inventory management
+        </motion.div>
+
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-[4rem] md:text-[5rem] font-extrabold text-gray-900 leading-[1.05] mb-6 tracking-tighter"
+        >
+          Manage your stock<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            with confidence.
+          </span>
+        </motion.h1>
+
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="text-[1.125rem] md:text-[1.25rem] text-gray-500 max-w-[600px] mb-10 leading-relaxed"
+        >
+          Track items, manage bookings, generate delivery challans, and stay on top of your inventory — all in one secure, animated workspace.
+        </motion.p>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full mb-24"
+        >
+          <motion.button 
+            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onSignIn} 
+            className="w-full sm:w-auto px-8 py-3.5 text-[16px] font-medium text-white bg-[#2563eb] rounded-xl hover:bg-blue-700 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]"
+          >
+            Get Started Free
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onSignIn} 
+            className="w-full sm:w-auto px-8 py-3.5 text-[16px] font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
+          >
+            Sign In
+          </motion.button>
+        </motion.div>
+
+        {/* Feature Grid with Staggered Animation */}
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.6
+              }
+            }
+          }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl"
+        >
+          {[
+            { icon: Box, title: "Item Tracking", desc: "Track opening stock, stock in/out, and real-time balance with reorder alerts." },
+            { icon: TrendingUp, title: "Booking Management", desc: "Manage multiple bookings per item with party name, address, and quantity." },
+            { icon: FileText, title: "Challan Generation", desc: "Generate and print professional delivery challans instantly for any booking." }
+          ].map((feature, idx) => (
+            <motion.div 
+              key={idx}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
+              }}
+              whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+              className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-left flex flex-col transition-all cursor-default relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <feature.icon className="w-6 h-6 text-[#2563eb]" />
+                </div>
+                <h3 className="text-[19px] font-bold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-[#64748b] text-[15px] leading-relaxed">{feature.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </main>
+    </div>
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -766,70 +915,7 @@ export default function App() {
 
   if (!user) {
     if (!showLogin) {
-      return (
-        <div className="min-h-screen bg-[#fafafa] font-sans">
-          <nav className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="bg-[#1a56db] rounded p-1.5 flex items-center justify-center">
-                <PackageCheck className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-[17px] text-gray-900">Dharmveer Inventory</span>
-            </div>
-            <button onClick={() => setShowLogin(true)} className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              Sign In
-            </button>
-          </nav>
-
-          <main className="max-w-6xl mx-auto px-6 pt-24 pb-20 flex flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-600 font-medium text-sm mb-8">
-              <ShieldCheck className="w-4 h-4" />
-              Secure inventory management
-            </div>
-
-            <h1 className="text-[56px] font-bold text-gray-900 leading-[1.1] mb-6 tracking-tight">
-              Manage your stock<br />
-              <span className="text-[#2563eb]">with confidence</span>
-            </h1>
-
-            <p className="text-[18px] text-gray-500 max-w-[600px] mb-10 leading-relaxed">
-              Track items, manage bookings, generate delivery challans, and stay on top of your inventory — all in one secure place.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24 w-full">
-              <button onClick={() => setShowLogin(true)} className="w-full sm:w-auto px-6 py-3 text-[15px] font-medium text-white bg-[#2563eb] rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-                Get Started Free
-              </button>
-              <button onClick={() => setShowLogin(true)} className="w-full sm:w-auto px-6 py-3 text-[15px] font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-                Sign In
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] text-left flex flex-col">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-6">
-                  <Box className="w-5 h-5 text-[#2563eb]" />
-                </div>
-                <h3 className="text-[18px] font-bold text-gray-900 mb-2">Item Tracking</h3>
-                <p className="text-[#64748b] text-[15px] leading-relaxed">Track opening stock, stock in/out, and real-time balance with reorder alerts.</p>
-              </div>
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] text-left flex flex-col">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-6">
-                  <TrendingUp className="w-5 h-5 text-[#2563eb]" />
-                </div>
-                <h3 className="text-[18px] font-bold text-gray-900 mb-2">Booking Management</h3>
-                <p className="text-[#64748b] text-[15px] leading-relaxed">Manage multiple bookings per item with party name, address, and quantity.</p>
-              </div>
-              <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] text-left flex flex-col">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-6">
-                  <FileText className="w-5 h-5 text-[#2563eb]" />
-                </div>
-                <h3 className="text-[18px] font-bold text-gray-900 mb-2">Challan Generation</h3>
-                <p className="text-[#64748b] text-[15px] leading-relaxed">Generate and print professional delivery challans instantly for any booking.</p>
-              </div>
-            </div>
-          </main>
-        </div>
-      );
+      return <LandingPage onSignIn={() => setShowLogin(true)} />;
     }
 
     return (
