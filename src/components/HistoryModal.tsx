@@ -27,22 +27,22 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ item, isOpen, onClos
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-800 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                <History className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 leading-tight">Stock History</h2>
-                <p className="text-sm text-gray-500 font-medium">{item.name} • {item.size}</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Stock History</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{item.name} • {item.size}</p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+              className="p-2 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/50 rounded-xl transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -52,8 +52,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ item, isOpen, onClos
             {(!item.movements || item.movements.length === 0) ? (
               <div className="text-center py-8">
                 <History className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">No stock movements recorded yet.</p>
-                <p className="text-sm text-gray-400 mt-1">Changes to Stock In / Stock Out will appear here.</p>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">No stock movements recorded yet.</p>
+                <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">Changes to Stock In / Stock Out will appear here.</p>
               </div>
             ) : (
               <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
@@ -81,28 +81,28 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ item, isOpen, onClos
 
                   return (
                     <div key={movement.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group select-none">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-white shadow-sm z-10 shrink-0 md:mx-auto">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-white dark:bg-gray-800 shadow-sm z-10 shrink-0 md:mx-auto">
                         {isIncrease ? (
-                          <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
-                            <ArrowUpRight className="w-4 h-4 text-green-600" />
+                          <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+                            <ArrowUpRight className="w-4 h-4 text-green-600 dark:text-green-400" />
                           </div>
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
-                            <ArrowDownRight className="w-4 h-4 text-red-600" />
+                          <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                            <ArrowDownRight className="w-4 h-4 text-red-600 dark:text-red-400" />
                           </div>
                         )}
                       </div>
                       
-                      <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] p-4 rounded-xl border border-gray-100 bg-white shadow-sm group-hover:shadow-md transition-shadow">
+                      <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-1">
-                          <span className={`font-bold text-sm ${isIncrease ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`font-bold text-sm ${isIncrease ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             {isIncrease ? '+' : '-'}{absQty} {item.unit || 'BOX'}
                           </span>
-                          <span className="text-xs font-semibold text-gray-400">
+                          <span className="text-xs font-semibold text-gray-400 dark:text-gray-400">
                             {new Date(movement.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-sm font-medium text-gray-600">{displayType}</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{displayType}</p>
                       </div>
                     </div>
                   );

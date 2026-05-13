@@ -36,7 +36,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
           >
             <div className="flex flex-col gap-4">
               <div className="space-y-2">
-                <h3 className="text-[20px] font-semibold text-gray-900">{title}</h3>
+                <h3 className="text-[20px] font-semibold text-gray-900 dark:text-white">{title}</h3>
                 <p className="text-[#64748b] text-[15px] leading-relaxed">
                   {description}
                 </p>
@@ -46,7 +46,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-md font-medium text-gray-900 bg-[#f8f9fa] hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm text-[15px]"
+                  className="px-4 py-2 rounded-md font-medium text-gray-900 dark:text-white bg-[#f8f9fa] hover:bg-gray-100 dark:bg-gray-800/80 transition-colors border border-gray-200 dark:border-gray-700 shadow-sm text-[15px]"
                 >
                   Cancel
                 </button>

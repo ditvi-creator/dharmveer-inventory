@@ -41,17 +41,17 @@ const DateTimeInput = ({
   }
 
   return (
-    <div className="w-full border-t border-gray-100 pt-3 md:border-none md:pt-0" style={rootStyle}>
+    <div className="w-full border-t border-gray-100 dark:border-gray-800 pt-3 md:border-none md:pt-0" style={rootStyle}>
       <label className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide mb-1.5 block" style={labelStyle}>{label}</label>
       <div className="flex flex-col lg:flex-row gap-2">
         <input 
           type="date" 
           value={datePart} 
           onChange={e => handleDateChange(e.target.value)}
-          className="flex-1 bg-white border border-gray-200 rounded-[8px] px-3.5 py-2 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] h-[38px] w-full"
+          className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[8px] px-3.5 py-2 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] h-[38px] w-full"
         />
         {datePart && (
-           <div className="flex bg-white border border-gray-200 rounded-[8px] items-center justify-center px-3 py-1 text-[14px] focus-within:border-[#2962d9] focus-within:ring-1 focus-within:ring-[#2962d9] h-[38px] shrink-0 w-full lg:w-auto" style={timeContainerStyle}>
+           <div className="flex bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-[8px] items-center justify-center px-3 py-1 text-[14px] focus-within:border-[#2962d9] focus-within:ring-1 focus-within:ring-[#2962d9] h-[38px] shrink-0 w-full lg:w-auto" style={timeContainerStyle}>
              <select 
                value={hour12} 
                onChange={e => handleTimeChange(e.target.value, minute, ampm)}
@@ -61,7 +61,7 @@ const DateTimeInput = ({
                  <option key={h} value={h.toString().padStart(2, '0')}>{h.toString().padStart(2, '0')}</option>
                ))}
              </select>
-             <span className="mx-0.5 text-gray-400 font-medium">:</span>
+             <span className="mx-0.5 text-gray-400 dark:text-gray-400 font-medium">:</span>
              <select 
                value={minute} 
                onChange={e => handleTimeChange(hour12, e.target.value, ampm)}
@@ -178,7 +178,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
               </h2>
               <button 
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 transition-colors -mt-1 -mr-1 p-1"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 transition-colors -mt-1 -mr-1 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -202,7 +202,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                 </datalist>
 
                 {bookings.map((booking, index) => (
-                  <div key={booking.id} className="flex flex-col gap-3 p-3 md:p-0 bg-white border border-gray-200 md:border-transparent md:bg-transparent rounded-xl md:rounded-none mb-4 md:mb-6">
+                  <div key={booking.id} className="flex flex-col gap-3 p-3 md:p-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 md:border-transparent md:bg-transparent rounded-xl md:rounded-none mb-4 md:mb-6">
                     <div className="flex flex-col md:grid md:grid-cols-[1.5fr_1.5fr_120px_32px] gap-3 items-start md:items-center">
                       <div className="w-full">
                         <label className="text-[12px] font-medium text-[#6b7280] uppercase tracking-wide mb-1 block md:hidden">Party Name</label>
@@ -212,7 +212,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                           placeholder="Party name"
                           value={booking.partyName}
                           onChange={(e) => updateBooking(booking.id, { partyName: e.target.value })}
-                          className={`w-full bg-white border ${index === 0 && booking.partyName === '' ? 'border-[#2962d9]' : 'border-gray-200'} rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-400`}
+                          className={`w-full bg-white dark:bg-gray-800 border ${index === 0 && booking.partyName === '' ? 'border-[#2962d9]' : 'border-gray-200 dark:border-gray-700'} rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-400 dark:text-gray-400`}
                         />
                       </div>
                       <div className="w-full">
@@ -222,7 +222,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                           placeholder="Address"
                           value={booking.address}
                           onChange={(e) => updateBooking(booking.id, { address: e.target.value })}
-                          className="w-full bg-white md:bg-transparent border border-gray-200 rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-[#6b7280]"
+                          className="w-full bg-white dark:bg-gray-800 md:bg-transparent border border-gray-200 dark:border-gray-700 rounded-[8px] px-3.5 py-2.5 text-[14px] text-gray-900 dark:text-white focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-[#6b7280]"
                         />
                       </div>
                       <div className="flex items-center gap-3 w-full md:w-auto">
@@ -234,12 +234,12 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                             placeholder="0"
                             value={booking.qty === 0 ? '' : booking.qty}
                             onChange={(e) => updateBooking(booking.id, { qty: e.target.value === '' ? 0 : Number(e.target.value) })}
-                            className="w-full bg-white md:bg-transparent border border-gray-200 rounded-[8px] px-3 py-2.5 text-[14px] text-center text-gray-900 focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-900"
+                            className="w-full bg-white dark:bg-gray-800 md:bg-transparent border border-gray-200 dark:border-gray-700 rounded-[8px] px-3 py-2.5 text-[14px] text-center text-gray-900 dark:text-white focus:outline-none focus:border-[#2962d9] focus:ring-1 focus:ring-[#2962d9] placeholder:text-gray-900 dark:text-white"
                           />
                         </div>
                         <button 
                           onClick={() => removeBooking(booking.id)}
-                          className="text-[#f87171] hover:text-red-700 bg-red-50 md:bg-transparent rounded-lg md:rounded-none transition-colors flex items-center justify-center p-2.5 md:p-1 md:mt-0 mt-[22px]"
+                          className="text-[#f87171] hover:text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 md:bg-transparent rounded-lg md:rounded-none transition-colors flex items-center justify-center p-2.5 md:p-1 md:mt-0 mt-[22px]"
                         >
                           <Trash2 className="w-[18px] h-[18px]" strokeWidth={1.5} />
                         </button>
@@ -286,14 +286,14 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                 
                 <button 
                   onClick={addBooking}
-                  className="w-full bg-transparent border border-gray-200 hover:bg-gray-100 rounded-[8px] py-2.5 flex items-center justify-center gap-2 text-[14px] font-medium text-[#111827] transition-colors mt-2"
+                  className="w-full bg-transparent border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:bg-gray-800/80 rounded-[8px] py-2.5 flex items-center justify-center gap-2 text-[14px] font-medium text-[#111827] transition-colors mt-2"
                 >
                   <Plus className="w-[16px] h-[16px] text-[#111827]" strokeWidth={2} />
                   Add Party
                 </button>
               </div>
               
-              <div className="mt-6 pt-5 border-t border-gray-200">
+              <div className="mt-6 pt-5 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-[#6b7280] text-[15px]">Total Booked</span>
                   <span className="text-[18px] font-bold text-[#111827]">{totalBooked}</span>
@@ -303,7 +303,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-5 py-2.5 bg-transparent border border-gray-200 text-[#374151] rounded-[8px] text-[14px] font-medium hover:bg-gray-100 transition-colors"
+                    className="px-5 py-2.5 bg-transparent border border-gray-200 dark:border-gray-700 text-[#374151] rounded-[8px] text-[14px] font-medium hover:bg-gray-100 dark:bg-gray-800/80 transition-colors"
                   >
                     Cancel
                   </button>

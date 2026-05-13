@@ -91,56 +91,56 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
             initial={{ scale: 0.95, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 10 }}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-lg relative z-10 overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg relative z-10 overflow-hidden"
           >
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center">
                   {itemToEdit ? <Save className="w-6 h-6" /> : <PackagePlus className="w-6 h-6" />}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">{itemToEdit ? "Edit Stock Item" : "New Stock Item"}</h3>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-400">
                     {itemToEdit ? `Modifying properties for ${itemToEdit.name}` : "Add a new item to your inventory registry"}
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
-                <X className="w-5 h-5 text-gray-400" />
+              <button onClick={onClose} className="p-2 hover:bg-gray-50 dark:bg-gray-900/50 rounded-full transition-colors">
+                <X className="w-5 h-5 text-gray-400 dark:text-gray-400" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Item Name</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Item Name</label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                     placeholder="e.g. country chest nut"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Size</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Size</label>
                   <input
                     type="text"
                     value={formData.size}
                     onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                     placeholder="e.g. 8*48"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Unit</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Unit</label>
                   <select
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                   >
                     <option value="BOX">BOX</option>
                     <option value="PCS">PCS</option>
@@ -150,63 +150,63 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Category (Optional)</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Category (Optional)</label>
                   <input
                     type="text"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                     placeholder="e.g. Wall Tiles"
                   />
                 </div>
 
-                <div className="p-4 bg-blue-50 rounded-xl md:col-span-2 grid grid-cols-2 gap-4 border border-blue-100">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl md:col-span-2 grid grid-cols-2 gap-4 border border-blue-200 dark:border-blue-800">
                   <div className="col-span-2">
-                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Opening Stock Values</span>
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Opening Stock Values</span>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">MP Value</label>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">MP Value</label>
                     <input
                       type="number"
                       required
                       min="0"
                       value={formData.openingStockMP}
                       onChange={(e) => setFormData({ ...formData, openingStockMP: Number(e.target.value) })}
-                      className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">KL Value</label>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">KL Value</label>
                     <input
                       type="number"
                       required
                       min="0"
                       value={formData.openingStockKL}
                       onChange={(e) => setFormData({ ...formData, openingStockKL: Number(e.target.value) })}
-                      className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Reorder Level</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Reorder Level</label>
                   <input
                     type="number"
                     min="0"
                     value={formData.reorderLevel}
                     onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Party Name</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Party Name</label>
                   <input
                     type="text"
                     list="item-party-names"
                     value={formData.partyName}
                     onChange={(e) => setFormData({ ...formData, partyName: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
                     placeholder="e.g. Main Distributor"
                   />
                   <datalist id="item-party-names">
@@ -221,7 +221,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({ isOpen, onClose, onSave, i
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full sm:flex-1 px-6 py-3.5 sm:py-4 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-all"
+                  className="w-full sm:flex-1 px-6 py-3.5 sm:py-4 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:bg-gray-900/50 transition-all"
                 >
                   Cancel
                 </button>

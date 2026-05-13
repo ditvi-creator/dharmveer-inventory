@@ -171,7 +171,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               </div>
               <button 
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 transition-colors -mt-1 -mr-1 p-1"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200 transition-colors -mt-1 -mr-1 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -254,7 +254,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors"
+                className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors"
               >
                 Close
               </button>
@@ -278,7 +278,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-800 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isExporting ? (
                   <>

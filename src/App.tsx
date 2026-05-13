@@ -11,6 +11,8 @@ import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { BookingsModal } from './components/BookingsModal';
 import { ChallanModal } from './components/ChallanModal';
 import { HistoryModal } from './components/HistoryModal';
+import { Settings as SettingsPage } from './components/Settings';
+import { Analytics as AnalyticsPage } from './components/Analytics';
 import { StockItem, Booking } from './types';
 import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -69,7 +71,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 
 function LandingPage({ onSignIn }: { onSignIn: () => void }) {
   return (
-    <div className="min-h-screen bg-[#fafafa] font-sans overflow-hidden relative">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-gray-950 font-sans overflow-hidden relative">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <motion.div 
@@ -89,7 +91,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
         />
       </div>
 
-      <nav className="relative z-10 flex items-center justify-between px-8 py-5 bg-white/70 backdrop-blur-md border-b border-gray-100 sticky top-0">
+      <nav className="relative z-10 flex items-center justify-between px-8 py-5 bg-white dark:bg-gray-800/70 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -99,7 +101,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
           <div className="bg-[#1a56db] rounded p-1.5 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <PackageCheck className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-[17px] text-gray-900 tracking-tight">Dharmveer Inventory</span>
+          <span className="font-bold text-[17px] text-gray-900 dark:text-white tracking-tight">Dharmveer Inventory</span>
         </motion.div>
         <motion.button 
           initial={{ opacity: 0, x: 20 }}
@@ -108,7 +110,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onSignIn} 
-          className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+          className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:bg-gray-900/50 transition-colors shadow-sm"
         >
           Sign In
         </motion.button>
@@ -119,7 +121,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100/50 text-blue-600 font-medium text-sm mb-8 shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 backdrop-blur-sm border border-blue-200 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 font-medium text-sm mb-8 shadow-sm"
         >
           <ShieldCheck className="w-4 h-4" />
           Secure inventory management
@@ -129,7 +131,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-[4rem] md:text-[5rem] font-extrabold text-gray-900 leading-[1.05] mb-6 tracking-tighter"
+          className="text-[4rem] md:text-[5rem] font-extrabold text-gray-900 dark:text-white leading-[1.05] mb-6 tracking-tighter"
         >
           Manage your stock<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -141,7 +143,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-[1.125rem] md:text-[1.25rem] text-gray-500 max-w-[600px] mb-10 leading-relaxed"
+          className="text-[1.125rem] md:text-[1.25rem] text-gray-500 dark:text-gray-400 max-w-[600px] mb-10 leading-relaxed"
         >
           Track items, manage bookings, generate delivery challans, and stay on top of your inventory — all in one secure, animated workspace.
         </motion.p>
@@ -164,7 +166,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onSignIn} 
-            className="w-full sm:w-auto px-8 py-3.5 text-[16px] font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
+            className="w-full sm:w-auto px-8 py-3.5 text-[16px] font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:bg-gray-900/50 transition-all shadow-sm"
           >
             Sign In
           </motion.button>
@@ -198,14 +200,14 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
                 visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
               }}
               whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-              className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-left flex flex-col transition-all cursor-default relative overflow-hidden group"
+              className="bg-white dark:bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-left flex flex-col transition-all cursor-default relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <feature.icon className="w-6 h-6 text-[#2563eb]" />
                 </div>
-                <h3 className="text-[19px] font-bold text-gray-900 mb-3">{feature.title}</h3>
+                <h3 className="text-[19px] font-bold text-gray-900 dark:text-white mb-3">{feature.title}</h3>
                 <p className="text-[#64748b] text-[15px] leading-relaxed">{feature.desc}</p>
               </div>
             </motion.div>
@@ -220,6 +222,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics'>('dashboard');
 
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -343,9 +346,15 @@ export default function App() {
 
   useEffect(() => {
     let playInterval: NodeJS.Timeout;
+    let customAudioElement: HTMLAudioElement | null = null;
+    let isPlayingCustom = false;
 
     if (activeReminderPopup) {
-      if (!audioCtxRef.current) {
+      const customSoundDataUrl = localStorage.getItem('customReminderSound');
+      
+      if (customSoundDataUrl) {
+        customAudioElement = new Audio(customSoundDataUrl);
+      } else if (!audioCtxRef.current) {
         try {
           audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         } catch (e) {
@@ -354,6 +363,17 @@ export default function App() {
       }
 
       const playSound = () => {
+        if (customAudioElement) {
+          if (!isPlayingCustom) {
+            isPlayingCustom = true;
+            customAudioElement.currentTime = 0;
+            customAudioElement.play().catch(e => console.error('Audio playback failed', e)).finally(() => {
+              isPlayingCustom = false;
+            });
+          }
+          return;
+        }
+
         if (!audioCtxRef.current) return;
         try {
           // Resume if suspended
@@ -389,6 +409,10 @@ export default function App() {
     return () => {
       if (playInterval) {
         clearInterval(playInterval);
+      }
+      if (customAudioElement) {
+        customAudioElement.pause();
+        customAudioElement.currentTime = 0;
       }
     };
   }, [activeReminderPopup]);
@@ -906,9 +930,9 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="mt-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Checking Authentication...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900/50 flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
+        <p className="mt-4 text-xs font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest">Checking Authentication...</p>
       </div>
     );
   }
@@ -919,7 +943,7 @@ export default function App() {
     }
 
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -927,7 +951,7 @@ export default function App() {
         >
           {/* Logo Section */}
           <div className="flex justify-center mb-8">
-            <div className="w-24 h-24 rounded-full bg-white shadow-[0_0_40px_rgba(0,0,0,0.05)] border border-gray-50 flex flex-col items-center justify-center">
+            <div className="w-24 h-24 rounded-full bg-white dark:bg-gray-800 shadow-[0_0_40px_rgba(0,0,0,0.05)] border border-gray-50 dark:border-gray-800/50 flex flex-col items-center justify-center">
               <div className="bg-[#1a56db] rounded-lg p-2 mb-1 flex items-center justify-center">
                 <PackageCheck className="w-6 h-6 text-white" />
               </div>
@@ -949,7 +973,7 @@ export default function App() {
 
           <button 
             onClick={login}
-            className="w-full flex items-center justify-center gap-3 bg-white text-[#334155] border border-gray-200 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors mb-6 shadow-sm"
+            className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-[#334155] dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors mb-6 shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -962,15 +986,15 @@ export default function App() {
 
           <div className="flex items-center gap-4 mb-6">
             <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-xs font-semibold text-gray-400">OR</span>
+            <span className="text-xs font-semibold text-gray-400 dark:text-gray-400">OR</span>
             <div className="flex-1 h-px bg-gray-200"></div>
           </div>
 
           <form onSubmit={loginWithEmail} className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-[#334155] mb-1.5 text-center">Email</label>
+              <label className="block text-sm font-semibold text-[#334155] dark:text-gray-200 mb-1.5 text-center">Email</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-gray-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                 </div>
                 <input
@@ -978,15 +1002,15 @@ export default function App() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400"
+                  className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400 dark:text-gray-400"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-[#334155] mb-1.5 text-center">Password</label>
+              <label className="block text-sm font-semibold text-[#334155] dark:text-gray-200 mb-1.5 text-center">Password</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-gray-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
                 <input
@@ -994,14 +1018,14 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="........"
-                  className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400 tracking-widest"
+                  className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400 dark:text-gray-400 tracking-widest"
                 />
               </div>
             </div>
 
             <button 
               type="submit"
-              className="w-full bg-[#0f172a] text-white rounded-xl py-3.5 font-semibold text-[15px] hover:bg-[#1e293b] active:scale-[0.98] transition-all mt-4"
+              className="w-full bg-[#0f172a] dark:bg-blue-600 text-white rounded-xl py-3.5 font-semibold text-[15px] hover:bg-[#1e293b] active:scale-[0.98] transition-all mt-4"
             >
               Sign in
             </button>
@@ -1013,7 +1037,7 @@ export default function App() {
             </button>
             <div className="text-[#64748b]">
               Need an account?{' '}
-              <button onClick={signUpWithEmail} className="text-[#334155] font-semibold hover:text-[#0f172a] transition-colors">
+              <button onClick={signUpWithEmail} className="text-[#334155] dark:text-gray-200 font-semibold hover:text-[#0f172a] transition-colors">
                 Sign up
               </button>
             </div>
@@ -1025,9 +1049,9 @@ export default function App() {
 
   if (loading && items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="mt-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Catalog...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900/50 flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
+        <p className="mt-4 text-xs font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest">Loading Catalog...</p>
       </div>
     );
   }
@@ -1039,302 +1063,311 @@ export default function App() {
       onDownloadTemplate={downloadTemplate}
       onImportCSV={handleImportCSV}
       onExportCSV={exportCSV}
-      // Assuming layout handles logout if we pass it, but if not we can add a simple button here or inject it
+      currentPage={currentPage}
+      onPageChange={setCurrentPage}
     >
       <Toaster position="top-right" />
       
-      {/* Reminder Banner */}
-      {dismissedReminders.length > 0 && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h3 className="font-bold text-red-800 text-sm tracking-wide">PENDING REMINDERS ({dismissedReminders.length})</h3>
-          </div>
-          <div className="flex flex-col gap-2">
-            {dismissedReminders.map((r, i) => (
-              <div key={`${r.item.id}-${r.booking.id}-${i}`} className="flex items-center justify-between text-sm bg-white p-3 rounded-lg border border-red-100 shadow-sm">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-900">{r.item.name} - {r.booking.partyName || 'Unknown Party'}</span>
-                  <span className="text-gray-500 text-xs">Scheduled Send: {new Date(r.booking.dateOfSend!).toLocaleString()}</span>
-                </div>
-                <button 
-                  onClick={() => handleCompleteReminder(r.item, r.booking)}
-                  className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-xs font-bold transition-colors"
-                >
-                  Mark Done
-                </button>
+      {currentPage === 'dashboard' ? (
+        <>
+          {/* Reminder Banner */}
+          {dismissedReminders.length > 0 && (
+            <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex flex-col gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <h3 className="font-bold text-red-800 text-sm tracking-wide">PENDING REMINDERS ({dismissedReminders.length})</h3>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Reminder Popup */}
-      <AnimatePresence>
-        {activeReminderPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-50 flex flex-col overflow-hidden"
-            >
-              <div className="bg-amber-500 p-6 flex flex-col items-center justify-center text-center">
-                <div className="bg-white/20 p-3 rounded-full mb-3">
-                  <BellRing className="w-8 h-8 text-white animate-pulse" />
-                </div>
-                <h2 className="text-xl font-bold text-white tracking-tight">Time to Send!</h2>
-              </div>
-              <div className="p-6 flex flex-col items-center text-center gap-2">
-                <p className="text-gray-900 font-bold text-lg">{activeReminderPopup.booking.partyName || 'Unknown Party'}</p>
-                <p className="text-gray-600 font-medium">Item: {activeReminderPopup.item.name}</p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Amount: <span className="font-bold text-gray-800">{activeReminderPopup.booking.qty}</span>
-                </p>
-                <div className="flex flex-col w-full gap-2 mt-6">
-                  <button 
-                    onClick={() => handleCompleteReminder(activeReminderPopup.item, activeReminderPopup.booking)}
-                    className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors"
-                  >
-                    Mark as Done
-                  </button>
-                  <button 
-                    onClick={() => handleDismissReminder(activeReminderPopup.item, activeReminderPopup.booking)}
-                    className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                  >
-                    Close & Keep in Banner
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* We can inject Logout in Header via a portal or just float it if Layout doesn't take it... Wait, Layout is shared. Let's add a logout button. */}
-      <div className="flex justify-end mb-4">
-        <button onClick={logout} className="text-sm font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <LogIn className="w-4 h-4 rotate-180" /> Logout
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        <StatsCard 
-          icon={<Boxes className="text-blue-500 w-5 h-5" />} 
-          bg="bg-blue-100/50"
-          label="TOTAL ITEMS" 
-          value={stats.totalItems} 
-          delay={0.1}
-        />
-        <StatsCard 
-          icon={<TrendingUp className="text-green-500 w-5 h-5" />} 
-          bg="bg-green-100/50"
-          label="TOTAL STOCK IN" 
-          value={stats.totalStockIn} 
-          delay={0.2}
-        />
-        <StatsCard 
-          icon={<TrendingDown className="text-orange-500 w-5 h-5" />} 
-          bg="bg-orange-100/50"
-          label="TOTAL STOCK OUT" 
-          value={stats.totalStockOut} 
-          delay={0.3}
-        />
-        <StatsCard 
-          icon={<AlertTriangle className="text-red-500 w-5 h-5" />} 
-          bg="bg-red-100/50"
-          label="LOW STOCK" 
-          value={stats.lowStockItems} 
-          delay={0.4}
-        />
-      </div>
-
-      {/* Filters & Search */}
-      <div className="space-y-6 mb-8 flex flex-col">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1 max-w-xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input 
-                ref={searchInputRef}
-                type="text" 
-                placeholder="Search by item name, size or party... (Ctrl+S)" 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-              />
-            </div>
-            
-            <button
-              onClick={handleMicClick}
-              className={`flex items-center justify-center p-4 rounded-xl border transition-all ${
-                isListening
-                  ? 'bg-red-50 border-red-200 text-red-500 animate-pulse'
-                  : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600'
-              }`}
-              title={isListening ? "Stop listening" : "Search by voice"}
-            >
-              <Mic className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-6 py-4 rounded-xl border text-sm font-medium transition-all ${
-                showFilters 
-                ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-              }`}
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-              {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold ml-1">
-                  {
-                    (statusFilter !== 'all' ? 1 : 0) +
-                    (bookingFilter !== 'all-bookings' ? 1 : 0) +
-                    (partyFilter !== 'all' ? 1 : 0) +
-                    (categoryFilter !== 'all' ? 1 : 0) +
-                    (dateFilterStart || dateFilterEnd ? 1 : 0)
-                  }
-                </span>
-              )}
-            </button>
-          </div>
-          
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ height: 0, opacity: 0, y: -10 }}
-                animate={{ height: 'auto', opacity: 1, y: 0 }}
-                exit={{ height: 0, opacity: 0, y: -10 }}
-                transition={{ 
-                  duration: 0.3, 
-                  ease: [0.04, 0.62, 0.23, 0.98]
-                }}
-                className="overflow-hidden"
-              >
-                <div className="p-5 bg-white border border-gray-200 rounded-xl flex flex-wrap items-center gap-6 shadow-sm mt-1">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Status</label>
-                    <select 
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="in-stock">In Stock</option>
-                      <option value="low-stock">Low Stock</option>
-                      <option value="out-of-stock">Out of Stock</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bookings</label>
-                    <select 
-                      value={bookingFilter}
-                      onChange={(e) => setBookingFilter(e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors"
-                    >
-                      <option value="all-bookings">All Bookings</option>
-                      <option value="no-bookings">No Bookings</option>
-                      <option value="has-bookings">Has Bookings</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Party</label>
-                    <select 
-                      value={partyFilter}
-                      onChange={(e) => setPartyFilter(e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors max-w-[160px] truncate"
-                    >
-                      <option value="all">All Parties</option>
-                      {allPartyNames.map(party => (
-                        <option key={party} value={party}>{party}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Category</label>
-                    <select 
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-colors max-w-[160px] truncate"
-                    >
-                      <option value="all">All Categories</option>
-                      {allCategories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Updated Date</label>
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 focus-within:bg-white transition-colors">
-                      <input 
-                        type="date"
-                        value={dateFilterStart}
-                        onChange={(e) => setDateFilterStart(e.target.value)}
-                        className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0 w-[125px]"
-                      />
-                      <span className="text-gray-400 text-xs">-</span>
-                      <input 
-                        type="date"
-                        value={dateFilterEnd}
-                        onChange={(e) => setDateFilterEnd(e.target.value)}
-                        className="text-sm font-medium text-gray-700 bg-transparent border-none outline-none focus:ring-0 w-[125px]"
-                      />
+              <div className="flex flex-col gap-2">
+                {dismissedReminders.map((r, i) => (
+                  <div key={`${r.item.id}-${r.booking.id}-${i}`} className="flex items-center justify-between text-sm bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-100 dark:border-red-800 shadow-sm">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-gray-900 dark:text-white">{r.item.name} - {r.booking.partyName || 'Unknown Party'}</span>
+                      <span className="text-gray-500 dark:text-gray-400 text-xs">Scheduled Send: {new Date(r.booking.dateOfSend!).toLocaleString()}</span>
                     </div>
+                    <button 
+                      onClick={() => handleCompleteReminder(r.item, r.booking)}
+                      className="px-3 py-1.5 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:bg-red-900/40 rounded-lg text-xs font-bold transition-colors"
+                    >
+                      Mark Done
+                    </button>
                   </div>
-                  
-                  {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
-                    <div className="flex flex-col gap-2 ml-auto self-end">
-                      <button
-                        onClick={() => {
-                          setStatusFilter('all');
-                          setBookingFilter('all-bookings');
-                          setPartyFilter('all');
-                          setCategoryFilter('all');
-                          setDateFilterStart('');
-                          setDateFilterEnd('');
-                        }}
-                        className="text-xs font-semibold text-gray-500 hover:text-red-600 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-100 transition-colors"
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reminder Popup */}
+          <AnimatePresence>
+            {activeReminderPopup && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm relative z-50 flex flex-col overflow-hidden"
+                >
+                  <div className="bg-amber-50 dark:bg-amber-900/20 p-6 flex flex-col items-center justify-center text-center">
+                    <div className="bg-white dark:bg-gray-800/20 p-3 rounded-full mb-3">
+                      <BellRing className="w-8 h-8 text-white animate-pulse" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white tracking-tight">Time to Send!</h2>
+                  </div>
+                  <div className="p-6 flex flex-col items-center text-center gap-2">
+                    <p className="text-gray-900 dark:text-white font-bold text-lg">{activeReminderPopup.booking.partyName || 'Unknown Party'}</p>
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">Item: {activeReminderPopup.item.name}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                      Amount: <span className="font-bold text-gray-800 dark:text-gray-100">{activeReminderPopup.booking.qty}</span>
+                    </p>
+                    <div className="flex flex-col w-full gap-2 mt-6">
+                      <button 
+                        onClick={() => handleCompleteReminder(activeReminderPopup.item, activeReminderPopup.booking)}
+                        className="w-full py-3 bg-amber-50 dark:bg-amber-900/20 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors"
                       >
-                        <X className="w-3.5 h-3.5" /> Clear All Filters
+                        Mark as Done
+                      </button>
+                      <button 
+                        onClick={() => handleDismissReminder(activeReminderPopup.item, activeReminderPopup.booking)}
+                        className="w-full py-3 bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                      >
+                        Close & Keep in Banner
                       </button>
                     </div>
-                  )}
-                </div>
-              </motion.div>
+                  </div>
+                </motion.div>
+              </div>
             )}
           </AnimatePresence>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mr-2">Sort by:</span>
-          <SortPill active={sortBy === 'default'} onClick={() => setSortBy('default')}>Default</SortPill>
-          <SortPill active={sortBy === 'name-asc'} onClick={() => setSortBy('name-asc')}>Name A&rarr;Z</SortPill>
-          <SortPill active={sortBy === 'name-desc'} onClick={() => setSortBy('name-desc')}>Name Z&rarr;A</SortPill>
-          <SortPill active={sortBy === 'size-asc'} onClick={() => setSortBy('size-asc')}>Size A&rarr;Z</SortPill>
-          <SortPill active={sortBy === 'size-desc'} onClick={() => setSortBy('size-desc')}>Size Z&rarr;A</SortPill>
-          <SortPill active={sortBy === 'balance-asc'} onClick={() => setSortBy('balance-asc')}>Balance &uarr;</SortPill>
-          <SortPill active={sortBy === 'balance-desc'} onClick={() => setSortBy('balance-desc')}>Balance &darr;</SortPill>
-          <SortPill active={sortBy === 'reorder-asc'} onClick={() => setSortBy('reorder-asc')}>Reorder Level &uarr;</SortPill>
-          <SortPill active={sortBy === 'reorder-desc'} onClick={() => setSortBy('reorder-desc')}>Reorder Level &darr;</SortPill>
-        </div>
-      </div>
+          {/* We can inject Logout in Header via a portal or just float it if Layout doesn't take it... Wait, Layout is shared. Let's add a logout button. */}
+          <div className="flex justify-end mb-4">
+            <button onClick={logout} className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-white flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+              <LogIn className="w-4 h-4 rotate-180" /> Logout
+            </button>
+          </div>
 
-      <StockTable 
-        items={filteredAndSortedItems} 
-        onEditItem={openEditModal}
-        onUpdateItem={updateItem}
-        onDeleteItem={(id) => setItemToDelete(id)}
-        onOpenBookings={(item) => setSelectedItemForBookings(item)}
-        onOpenChallan={handleOpenChallan}
-        onOpenHistory={(item) => setSelectedItemForHistory(item)}
-      />
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <StatsCard 
+              icon={<Boxes className="text-blue-500 w-5 h-5" />} 
+              bg="bg-blue-100 dark:bg-blue-900/40"
+              label="TOTAL ITEMS" 
+              value={stats.totalItems} 
+              delay={0.1}
+            />
+            <StatsCard 
+              icon={<TrendingUp className="text-green-500 w-5 h-5" />} 
+              bg="bg-green-100 dark:bg-green-900/40"
+              label="TOTAL STOCK IN" 
+              value={stats.totalStockIn} 
+              delay={0.2}
+            />
+            <StatsCard 
+              icon={<TrendingDown className="text-orange-500 w-5 h-5" />} 
+              bg="bg-orange-100 dark:bg-orange-900/40"
+              label="TOTAL STOCK OUT" 
+              value={stats.totalStockOut} 
+              delay={0.3}
+            />
+            <StatsCard 
+              icon={<AlertTriangle className="text-red-500 w-5 h-5" />} 
+              bg="bg-red-100 dark:bg-red-900/40"
+              label="LOW STOCK" 
+              value={stats.lowStockItems} 
+              delay={0.4}
+            />
+          </div>
+
+          {/* Filters & Search */}
+          <div className="space-y-6 mb-8 flex flex-col">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1 max-w-xl">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-400" />
+                  <input 
+                    ref={searchInputRef}
+                    type="text" 
+                    placeholder="Search by item name, size or party... (Ctrl+S)" 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+                  />
+                </div>
+                
+                <button
+                  onClick={handleMicClick}
+                  className={`flex items-center justify-center p-4 rounded-xl border transition-all ${
+                    isListening
+                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-500 animate-pulse'
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 hover:text-gray-600 dark:text-gray-300'
+                  }`}
+                  title={isListening ? "Stop listening" : "Search by voice"}
+                >
+                  <Mic className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-6 py-4 rounded-xl border text-sm font-medium transition-all ${
+                    showFilters 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400' 
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900/50 hover:border-gray-300 dark:border-gray-600'
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters
+                  {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold ml-1">
+                      {
+                        (statusFilter !== 'all' ? 1 : 0) +
+                        (bookingFilter !== 'all-bookings' ? 1 : 0) +
+                        (partyFilter !== 'all' ? 1 : 0) +
+                        (categoryFilter !== 'all' ? 1 : 0) +
+                        (dateFilterStart || dateFilterEnd ? 1 : 0)
+                      }
+                    </span>
+                  )}
+                </button>
+              </div>
+              
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0, y: -10 }}
+                    animate={{ height: 'auto', opacity: 1, y: 0 }}
+                    exit={{ height: 0, opacity: 0, y: -10 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      ease: [0.04, 0.62, 0.23, 0.98]
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-wrap items-center gap-6 shadow-sm mt-1">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Status</label>
+                        <select 
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors"
+                        >
+                          <option value="all">All Status</option>
+                          <option value="in-stock">In Stock</option>
+                          <option value="low-stock">Low Stock</option>
+                          <option value="out-of-stock">Out of Stock</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Bookings</label>
+                        <select 
+                          value={bookingFilter}
+                          onChange={(e) => setBookingFilter(e.target.value)}
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors"
+                        >
+                          <option value="all-bookings">All Bookings</option>
+                          <option value="no-bookings">No Bookings</option>
+                          <option value="has-bookings">Has Bookings</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Party</label>
+                        <select 
+                          value={partyFilter}
+                          onChange={(e) => setPartyFilter(e.target.value)}
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors max-w-[160px] truncate"
+                        >
+                          <option value="all">All Parties</option>
+                          {allPartyNames.map(party => (
+                            <option key={party} value={party}>{party}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Category</label>
+                        <select 
+                          value={categoryFilter}
+                          onChange={(e) => setCategoryFilter(e.target.value)}
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors max-w-[160px] truncate"
+                        >
+                          <option value="all">All Categories</option>
+                          {allCategories.map(category => (
+                            <option key={category} value={category}>{category}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Updated Date</label>
+                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 focus-within:bg-white dark:bg-gray-800 transition-colors">
+                          <input 
+                            type="date"
+                            value={dateFilterStart}
+                            onChange={(e) => setDateFilterStart(e.target.value)}
+                            className="text-sm font-medium text-gray-700 dark:text-gray-200 bg-transparent border-none outline-none focus:ring-0 w-[125px]"
+                          />
+                          <span className="text-gray-400 dark:text-gray-400 text-xs">-</span>
+                          <input 
+                            type="date"
+                            value={dateFilterEnd}
+                            onChange={(e) => setDateFilterEnd(e.target.value)}
+                            className="text-sm font-medium text-gray-700 dark:text-gray-200 bg-transparent border-none outline-none focus:ring-0 w-[125px]"
+                          />
+                        </div>
+                      </div>
+                      
+                      {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
+                        <div className="flex flex-col gap-2 ml-auto self-end">
+                          <button
+                            onClick={() => {
+                              setStatusFilter('all');
+                              setBookingFilter('all-bookings');
+                              setPartyFilter('all');
+                              setCategoryFilter('all');
+                              setDateFilterStart('');
+                              setDateFilterEnd('');
+                            }}
+                            className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-red-600 dark:text-red-400 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-red-50 dark:bg-red-900/20 border border-transparent hover:border-red-100 dark:border-red-800 transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5" /> Clear All Filters
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mr-2">Sort by:</span>
+              <SortPill active={sortBy === 'default'} onClick={() => setSortBy('default')}>Default</SortPill>
+              <SortPill active={sortBy === 'name-asc'} onClick={() => setSortBy('name-asc')}>Name A&rarr;Z</SortPill>
+              <SortPill active={sortBy === 'name-desc'} onClick={() => setSortBy('name-desc')}>Name Z&rarr;A</SortPill>
+              <SortPill active={sortBy === 'size-asc'} onClick={() => setSortBy('size-asc')}>Size A&rarr;Z</SortPill>
+              <SortPill active={sortBy === 'size-desc'} onClick={() => setSortBy('size-desc')}>Size Z&rarr;A</SortPill>
+              <SortPill active={sortBy === 'balance-asc'} onClick={() => setSortBy('balance-asc')}>Balance &uarr;</SortPill>
+              <SortPill active={sortBy === 'balance-desc'} onClick={() => setSortBy('balance-desc')}>Balance &darr;</SortPill>
+              <SortPill active={sortBy === 'reorder-asc'} onClick={() => setSortBy('reorder-asc')}>Reorder Level &uarr;</SortPill>
+              <SortPill active={sortBy === 'reorder-desc'} onClick={() => setSortBy('reorder-desc')}>Reorder Level &darr;</SortPill>
+            </div>
+          </div>
+
+          <StockTable 
+            items={filteredAndSortedItems} 
+            onEditItem={openEditModal}
+            onUpdateItem={updateItem}
+            onDeleteItem={(id) => setItemToDelete(id)}
+            onOpenBookings={(item) => setSelectedItemForBookings(item)}
+            onOpenChallan={handleOpenChallan}
+            onOpenHistory={(item) => setSelectedItemForHistory(item)}
+          />
+        </>
+      ) : currentPage === 'analytics' ? (
+        <AnalyticsPage items={items} />
+      ) : (
+        <SettingsPage onClearData={() => setIsDeleteAllModalOpen(true)} />
+      )}
 
       <HistoryModal
         isOpen={!!selectedItemForHistory}
@@ -1392,14 +1425,14 @@ const StatsCard = ({ icon, label, value, bg, delay }: any) => (
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay }}
-    className="bg-white p-6 rounded-2xl border border-gray-100 flex items-center gap-5 shadow-sm hover:shadow-md transition-shadow"
+    className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-5 shadow-sm hover:shadow-md transition-shadow"
   >
     <div className={`w-14 h-14 ${bg} rounded-2xl flex items-center justify-center`}>
       {icon}
     </div>
     <div>
-      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-3xl font-black text-gray-900 leading-none">{value}</p>
+      <p className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-3xl font-black text-gray-900 dark:text-white leading-none">{value}</p>
     </div>
   </motion.div>
 );
@@ -1410,7 +1443,7 @@ const SortPill = ({ children, active, onClick }: any) => (
     className={`px-4 py-2 rounded-full text-[10px] font-bold transition-all border ${
       active 
       ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-      : 'bg-white text-gray-400 border-gray-100 hover:border-gray-300'
+      : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-400 border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:border-gray-600'
     }`}
   >
     {children}
