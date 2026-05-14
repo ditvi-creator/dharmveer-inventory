@@ -179,74 +179,76 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               </button>
             </div>
 
-            <div className="px-6 py-2">
-              <div ref={componentRef} id="challan-content" className="bg-[#f8f9fa] border border-[#e5e7eb] rounded-xl overflow-hidden flex flex-col">
-                {/* Header */}
-                <div className="bg-[#2962d9] p-5 flex items-center justify-center text-[#ffffff]">
-                  <div className="text-[20px] font-bold tracking-wider uppercase">
-                    Delivery Challan
+            <div className="px-6 py-2 pb-6">
+              <div ref={componentRef} id="challan-content" className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col shadow-sm">
+                
+                <div className="p-8 pb-0">
+                  {/* Header Row */}
+                  <div className="flex justify-between items-start border-b border-gray-200 pb-6 mb-6">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Package className="w-7 h-7 text-blue-600" />
+                        <h1 className="text-2xl font-black tracking-tighter text-gray-900 uppercase">Delivery Challan</h1>
+                      </div>
+                      <p className="text-gray-500 text-sm font-medium">Original for Recipient</p>
+                    </div>
+                    
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <div className="text-gray-500 text-sm font-medium uppercase tracking-wider">Challan No.</div>
+                      <div className="text-xl font-bold text-gray-900">{challanNo}</div>
+                      <div className="text-gray-500 text-sm mt-1">Date: <span className="text-gray-800 font-medium">{currentDate}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Bill To Section */}
+                  <div className="mb-8">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Billed To</div>
+                    <div className="text-lg font-bold text-gray-900">{booking.partyName || 'Unknown Party'}</div>
+                    {booking.address && (
+                      <div className="text-sm text-gray-600 mt-1 max-w-sm">{booking.address}</div>
+                    )}
                   </div>
                 </div>
 
-                {/* Details Section */}
-                <div className="bg-[#f8f9fa]">
-                  <div className="px-6 py-4 flex justify-between items-center text-[14px] border-b border-[#e5e7eb]">
-                    <div className="text-[#4b5563]">
-                      Challan No.: <span className="font-bold text-[#111827]">{challanNo}</span>
-                    </div>
-                    <div className="text-[#4b5563]">
-                      Date: <span className="font-bold text-[#111827]">{currentDate}</span>
-                    </div>
-                  </div>
+                {/* Table */}
+                <div className="w-full overflow-x-auto px-8">
+                  <table className="w-full min-w-[400px]">
+                    <thead>
+                      <tr className="border-b-2 border-gray-800 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <th className="py-3 pr-4 text-left w-12">#</th>
+                        <th className="py-3 px-4 text-left">Item Name</th>
+                        <th className="py-3 px-4 text-left">Size</th>
+                        <th className="py-3 px-4 text-center w-24">Unit</th>
+                        <th className="py-3 pl-4 text-right">Quantity</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      <tr className="border-b border-gray-100">
+                        <td className="py-4 pr-4 text-gray-500 font-medium">1</td>
+                        <td className="py-4 px-4 font-bold text-gray-900">{item.name}</td>
+                        <td className="py-4 px-4 text-gray-600">{item.size}</td>
+                        <td className="py-4 px-4 text-center text-gray-600 font-medium">{item.unit || 'BOX'}</td>
+                        <td className="py-4 pl-4 text-right font-bold text-blue-600 text-lg">{booking.qty}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-                  <div className="px-6 py-4 border-b border-[#e5e7eb]">
-                    <div className="text-[12px] font-medium text-[#6b7280] uppercase tracking-widest mb-2">BILL TO</div>
-                    <div className="text-[18px] font-bold text-[#111827]">{booking.partyName || 'Unknown Party'}</div>
-                    {booking.address && (
-                      <div className="text-[14px] text-[#4b5563] mt-1">{booking.address}</div>
-                    )}
-                  </div>
+                {/* Total */}
+                <div className="px-8 py-4 bg-gray-50 border-t border-b border-gray-200 flex justify-end items-center gap-4 mt-8">
+                  <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Quantity:</span>
+                  <span className="text-2xl font-black text-gray-900">{booking.qty} <span className="text-lg font-bold text-gray-500 ml-1">{item.unit || 'BOX'}</span></span>
+                </div>
 
-                  {/* Table */}
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full min-w-[400px]">
-                      <thead>
-                        <tr className="border-b border-[#e5e7eb] text-[13px] font-medium text-[#6b7280]">
-                          <th className="py-3 px-4 sm:px-6 text-left font-medium w-12">#</th>
-                          <th className="py-3 px-4 sm:px-6 text-left font-medium">Item Name</th>
-                          <th className="py-3 px-4 sm:px-6 text-left font-medium">Size</th>
-                          <th className="py-3 px-4 sm:px-6 text-right font-medium">QTY (Booked)</th>
-                          <th className="py-3 px-4 sm:px-6 text-left font-medium w-16 sm:w-20">Unit</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-[#ffffff] text-[14px]">
-                        <tr className="border-b border-[#f3f4f6]">
-                          <td className="py-4 px-4 sm:px-6 text-[#6b7280]">1</td>
-                          <td className="py-4 px-4 sm:px-6 font-bold text-[#111827]">{item.name}</td>
-                          <td className="py-4 px-4 sm:px-6 text-[#4b5563]">{item.size}</td>
-                          <td className="py-4 px-4 sm:px-6 text-right font-bold text-[#2962d9] text-[16px]">{booking.qty}</td>
-                          <td className="py-4 px-4 sm:px-6 text-[#4b5563]">{item.unit || 'BOX'}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                {/* Signatures */}
+                <div className="px-8 py-10 flex justify-between flex-wrap gap-8 bg-white pb-12">
+                  <div className="flex flex-col">
+                    <div className="w-40 border-b-2 border-gray-300 mb-3"></div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Authorised Signatory</div>
                   </div>
-
-                  {/* Total */}
-                  <div className="px-6 py-4 border-b border-[#e5e7eb] bg-[#ffffff] flex justify-end items-center gap-2">
-                    <span className="text-[15px] font-bold text-[#374151]">Total Quantity:</span>
-                    <span className="text-[18px] font-bold text-[#2962d9]">{booking.qty} {item.unit || 'BOX'}</span>
-                  </div>
-
-                  {/* Signatures */}
-                  <div className="px-6 py-8 flex justify-between bg-[#f8f9fa] flex-wrap gap-6">
-                    <div>
-                      <div className="text-[13px] text-[#6b7280] mb-8">Authorised Signature:</div>
-                      <div className="w-32 md:w-48 border-b border-[#9ca3af]"></div>
-                    </div>
-                    <div>
-                      <div className="text-[13px] text-[#6b7280] mb-8">Received By:</div>
-                      <div className="w-32 md:w-48 border-b border-[#9ca3af]"></div>
-                    </div>
+                  <div className="flex flex-col">
+                    <div className="w-40 border-b-2 border-gray-300 mb-3"></div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Receiver's Signature</div>
                   </div>
                 </div>
               </div>
