@@ -162,6 +162,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={onClose}
@@ -169,6 +170,7 @@ export const BookingsModal: React.FC<BookingsModalProps> = ({ isOpen, onClose, i
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
             exit={{ scale: 0.95, opacity: 0, y: 10 }}
             className="bg-[#f8f9fa] rounded-[16px] shadow-2xl w-full max-w-[540px] relative z-10 flex flex-col"
           >

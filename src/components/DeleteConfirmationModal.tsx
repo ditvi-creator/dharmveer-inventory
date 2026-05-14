@@ -24,6 +24,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/20 backdrop-blur-[2px]"
             onClick={onClose}
@@ -31,6 +32,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
             exit={{ scale: 0.95, opacity: 0, y: 10 }}
             className="bg-[#f8f9fa] rounded-lg shadow-xl w-full max-w-md relative z-10 p-6"
           >

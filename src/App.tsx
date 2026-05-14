@@ -120,7 +120,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 backdrop-blur-sm border border-blue-200 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 font-medium text-sm mb-8 shadow-sm"
         >
           <ShieldCheck className="w-4 h-4" />
@@ -130,7 +130,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
           className="text-[4rem] md:text-[5rem] font-extrabold text-gray-900 dark:text-white leading-[1.05] mb-6 tracking-tighter"
         >
           Manage your stock<br />
@@ -142,7 +142,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
           className="text-[1.125rem] md:text-[1.25rem] text-gray-500 dark:text-gray-400 max-w-[600px] mb-10 leading-relaxed"
         >
           Track items, manage bookings, generate delivery challans, and stay on top of your inventory — all in one secure, animated workspace.
@@ -151,7 +151,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full mb-24"
         >
           <motion.button 
@@ -962,6 +962,7 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
           className="w-full max-w-[400px]"
         >
           {/* Logo Section */}
@@ -1083,11 +1084,20 @@ export default function App() {
     >
       <Toaster position="top-right" />
       
-      {currentPage === 'dashboard' ? (
-        <>
-          {/* Reminder Banner */}
-          {dismissedReminders.length > 0 && (
-            <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex flex-col gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentPage}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
+          className="w-full flex flex-col h-full"
+        >
+          {currentPage === 'dashboard' ? (
+            <>
+              {/* Reminder Banner */}
+              {dismissedReminders.length > 0 && (
+                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex flex-col gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                 <h3 className="font-bold text-red-800 text-sm tracking-wide">PENDING REMINDERS ({dismissedReminders.length})</h3>
@@ -1118,6 +1128,7 @@ export default function App() {
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0, y: 10 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
                   exit={{ scale: 0.95, opacity: 0, y: 10 }}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm relative z-50 flex flex-col overflow-hidden"
                 >
@@ -1383,6 +1394,8 @@ export default function App() {
       ) : (
         <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
       )}
+        </motion.div>
+      </AnimatePresence>
 
       <HistoryModal
         isOpen={!!selectedItemForHistory}

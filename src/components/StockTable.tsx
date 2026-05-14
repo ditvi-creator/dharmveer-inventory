@@ -104,6 +104,7 @@ export const StockTable: React.FC<StockTableProps> = ({
                       key={item.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
                       exit={{ opacity: 0 }}
                       className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group ${isLowStock ? 'bg-red-50 dark:bg-red-900/30' : ''}`}
                     >

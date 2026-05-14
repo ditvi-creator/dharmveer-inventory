@@ -18,6 +18,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ item, isOpen, onClos
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
