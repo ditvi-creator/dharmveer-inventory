@@ -74,13 +74,6 @@ export const Layout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <button 
-                title="Toggle Theme"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark')}
-                className="p-2 sm:px-3 sm:py-2 text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-sm flex items-center justify-center h-10"
-              >
-                {theme === 'light' ? <Sun className="w-4 h-4" /> : theme === 'dark' ? <Moon className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
-              </button>
               {currentPage === 'dashboard' && (
                 <div className="flex flex-wrap items-center gap-2 border-r-0 border-b sm:border-b-0 sm:border-r border-gray-200 pb-3 sm:pb-0 sm:pr-4 sm:mr-2 w-full sm:w-auto">
                   <HeaderButton icon={<FileDown className="w-4 h-4" />} label="Download Template" onClick={onDownloadTemplate} />

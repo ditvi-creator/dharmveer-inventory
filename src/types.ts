@@ -3,6 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface Godown {
+  id: string;
+  name: string;
+}
+
 export interface Booking {
   id: string;
   partyName: string;
@@ -28,8 +33,9 @@ export interface StockItem {
   size: string;
   unit: string;
   category?: string;
-  openingStockMP: number;
-  openingStockKL: number;
+  openingStockMP?: number; // legacy
+  openingStockKL?: number; // legacy
+  godownStocks?: Record<string, number>;
   stockIn: number;
   stockOut: number;
   balance: number;

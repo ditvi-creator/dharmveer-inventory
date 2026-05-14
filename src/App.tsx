@@ -224,6 +224,18 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics'>('dashboard');
 
+  const [godowns, setGodowns] = useState<{id: string, name: string}[]>(() => {
+    const saved = localStorage.getItem('app_godowns');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [
+      { id: 'MP', name: 'MP' },
+      { id: 'KL', name: 'KL' }
+    ];
+  });
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -569,6 +581,8 @@ export default function App() {
     // Determine openingStock variables properly from UI form structure
     const openingStockMP = data.openingStockMP || 0;
     const openingStockKL = data.openingStockKL || 0;
+    const godownStocks = data.godownStocks || {};
+    const totalGodowns = (data.openingStockMP || 0) + (data.openingStockKL || 0) + Object.values(godownStocks).reduce((a: any, b: any) => a + Number(b || 0), 0);
     const stockIn = 0;
     const stockOut = 0;
     
@@ -578,7 +592,7 @@ export default function App() {
       stockIn,
       stockOut,
       booked: 0,
-      balance: openingStockMP + openingStockKL,
+      balance: totalGodowns,
       updatedAt: serverTimestamp()
     };
 
@@ -600,7 +614,8 @@ export default function App() {
     const merged = { ...item, ...updates };
     const stockIn = merged.stockIn ?? 0;
     const stockOut = merged.stockOut ?? 0;
-    const balance = (merged.openingStockMP + merged.openingStockKL + stockIn) - stockOut;
+    const totalG = (merged.openingStockMP || 0) + (merged.openingStockKL || 0) + Object.values(merged.godownStocks || {}).reduce((a: any, b: any) => a + Number(b || 0), 0);
+    const balance = (totalG + stockIn) - stockOut;
     const currentReorderLevel = merged.reorderLevel || 0;
 
     if (balance <= currentReorderLevel && item.balance > currentReorderLevel) {
@@ -1106,8 +1121,8 @@ export default function App() {
                   exit={{ scale: 0.95, opacity: 0, y: 10 }}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm relative z-50 flex flex-col overflow-hidden"
                 >
-                  <div className="bg-amber-50 dark:bg-amber-900/20 p-6 flex flex-col items-center justify-center text-center">
-                    <div className="bg-white dark:bg-gray-800/20 p-3 rounded-full mb-3">
+                  <div className="bg-amber-500 dark:bg-amber-600 p-6 flex flex-col items-center justify-center text-center">
+                    <div className="bg-white/20 p-3 rounded-full mb-3">
                       <BellRing className="w-8 h-8 text-white animate-pulse" />
                     </div>
                     <h2 className="text-xl font-bold text-white tracking-tight">Time to Send!</h2>
@@ -1121,7 +1136,7 @@ export default function App() {
                     <div className="flex flex-col w-full gap-2 mt-6">
                       <button 
                         onClick={() => handleCompleteReminder(activeReminderPopup.item, activeReminderPopup.booking)}
-                        className="w-full py-3 bg-amber-50 dark:bg-amber-900/20 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors"
+                        className="w-full py-3 bg-amber-500 dark:bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-600 dark:hover:bg-amber-700 transition-colors"
                       >
                         Mark as Done
                       </button>
@@ -1247,7 +1262,7 @@ export default function App() {
                         <select 
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
-                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors"
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-colors"
                         >
                           <option value="all">All Status</option>
                           <option value="in-stock">In Stock</option>
@@ -1261,7 +1276,7 @@ export default function App() {
                         <select 
                           value={bookingFilter}
                           onChange={(e) => setBookingFilter(e.target.value)}
-                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors"
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-colors"
                         >
                           <option value="all-bookings">All Bookings</option>
                           <option value="no-bookings">No Bookings</option>
@@ -1274,7 +1289,7 @@ export default function App() {
                         <select 
                           value={partyFilter}
                           onChange={(e) => setPartyFilter(e.target.value)}
-                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors max-w-[160px] truncate"
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-colors max-w-[160px] truncate"
                         >
                           <option value="all">All Parties</option>
                           {allPartyNames.map(party => (
@@ -1288,7 +1303,7 @@ export default function App() {
                         <select 
                           value={categoryFilter}
                           onChange={(e) => setCategoryFilter(e.target.value)}
-                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:bg-gray-800 transition-colors max-w-[160px] truncate"
+                          className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-colors max-w-[160px] truncate"
                         >
                           <option value="all">All Categories</option>
                           {allCategories.map(category => (
@@ -1353,7 +1368,7 @@ export default function App() {
             </div>
           </div>
 
-          <StockTable 
+          <StockTable godowns={godowns} 
             items={filteredAndSortedItems} 
             onEditItem={openEditModal}
             onUpdateItem={updateItem}
@@ -1366,7 +1381,7 @@ export default function App() {
       ) : currentPage === 'analytics' ? (
         <AnalyticsPage items={items} />
       ) : (
-        <SettingsPage onClearData={() => setIsDeleteAllModalOpen(true)} />
+        <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
       )}
 
       <HistoryModal
@@ -1375,7 +1390,7 @@ export default function App() {
         item={selectedItemForHistory!}
       />
 
-      <ItemModal 
+      <ItemModal godowns={godowns} 
         isOpen={isModalOpen} 
         onClose={() => {
           setIsModalOpen(false);
