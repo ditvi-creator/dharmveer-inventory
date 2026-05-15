@@ -21,6 +21,7 @@ import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { Toaster, toast } from 'sonner';
+import { useSettingsContext } from './SettingsContext';
 
 enum OperationType {
   CREATE = 'create',
@@ -69,7 +70,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-function LandingPage({ onSignIn }: { onSignIn: () => void }) {
+function LandingPage({ onSignIn, appName }: { onSignIn: () => void, appName: string }) {
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-gray-950 font-sans overflow-hidden relative">
       {/* Decorative background elements */}
@@ -101,7 +102,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
           <div className="bg-[#1a56db] rounded p-1.5 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <PackageCheck className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold text-[17px] text-gray-900 dark:text-white tracking-tight">Dharmveer Inventory</span>
+          <span className="font-bold text-[17px] text-gray-900 dark:text-white tracking-tight">{appName}</span>
         </motion.div>
         <motion.button 
           initial={{ opacity: 0, x: 20 }}
@@ -219,6 +220,7 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
 }
 
 export default function App() {
+  const { settings } = useSettingsContext();
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
@@ -954,7 +956,7 @@ export default function App() {
 
   if (!user) {
     if (!showLogin) {
-      return <LandingPage onSignIn={() => setShowLogin(true)} />;
+      return <LandingPage onSignIn={() => setShowLogin(true)} appName={settings.companyName} />;
     }
 
     return (
@@ -1380,7 +1382,7 @@ export default function App() {
           </div>
 
           <StockTable godowns={godowns} 
-            items={filteredAndSortedItems} 
+            items={settings.itemsPerPage === 'all' ? filteredAndSortedItems : filteredAndSortedItems.slice(0, parseInt(settings.itemsPerPage) || 10)} 
             onEditItem={openEditModal}
             onUpdateItem={updateItem}
             onDeleteItem={(id) => setItemToDelete(id)}

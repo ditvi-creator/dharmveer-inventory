@@ -5,6 +5,7 @@ import { StockItem, Booking } from '../types';
 import { toJpeg } from 'html-to-image';
 import { toast } from 'sonner';
 import html2pdf from 'html2pdf.js';
+import { useSettingsContext } from '../SettingsContext';
 
 interface ChallanModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface ChallanModalProps {
 }
 
 export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, booking, item }) => {
+  const { settings } = useSettingsContext();
   const componentRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
@@ -186,14 +188,14 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
                         <Package className="w-7 h-7 text-[#2563eb]" />
-                        <h1 className="text-2xl font-black tracking-tighter text-[#111827] uppercase">Delivery Challan</h1>
+                        <h1 className="text-2xl font-black tracking-tighter text-[#111827] uppercase">{settings.companyName}</h1>
                       </div>
-                      <p className="text-[#6b7280] text-sm font-medium">Original for Recipient</p>
+                      <p className="text-[#6b7280] text-sm font-medium">Delivery Challan - Original</p>
                     </div>
                     
                     <div className="text-right flex flex-col items-end gap-1">
                       <div className="text-[#6b7280] text-sm font-medium uppercase tracking-wider">Challan No.</div>
-                      <div className="text-xl font-bold text-[#111827]">{challanNo}</div>
+                      <div className="text-xl font-bold text-[#111827]">{settings.challanPrefix}{challanNo}</div>
                       <div className="text-[#6b7280] text-sm mt-1">Date: <span className="text-[#1f2937] font-medium">{currentDate}</span></div>
                     </div>
                   </div>
@@ -238,17 +240,34 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                   <span className="text-2xl font-black text-[#111827]">{booking.qty} <span className="text-lg font-bold text-[#6b7280] ml-1">{item.unit || 'BOX'}</span></span>
                 </div>
 
-                {/* Signatures */}
-                <div className="px-8 py-10 flex justify-between flex-wrap gap-8 bg-[#ffffff] pb-12">
-                  <div className="flex flex-col">
-                    <div className="w-40 border-b-2 border-[#d1d5db] mb-3"></div>
-                    <div className="text-xs font-bold text-[#9ca3af] uppercase tracking-widest text-center">Authorised Signatory</div>
+                {/* Terms and Conditions */}
+                {settings.challanTerms && (
+                  <div className="px-8 mt-6">
+                    <div className="text-xs font-bold text-[#9ca3af] uppercase tracking-widest mb-2">Terms & Conditions</div>
+                    <div className="text-xs text-[#6b7280] whitespace-pre-wrap leading-relaxed">{settings.challanTerms}</div>
                   </div>
+                )}
+
+                {/* Signatures */}
+                <div className="px-8 py-10 flex justify-between flex-wrap gap-8 bg-[#ffffff] pt-12 pb-8">
+                  {settings.challanShowSignature ? (
+                    <div className="flex flex-col">
+                      <div className="w-40 border-b-2 border-[#d1d5db] mb-3"></div>
+                      <div className="text-xs font-bold text-[#9ca3af] uppercase tracking-widest text-center">Authorised Signatory</div>
+                    </div>
+                  ) : <div></div>}
                   <div className="flex flex-col">
                     <div className="w-40 border-b-2 border-[#d1d5db] mb-3"></div>
                     <div className="text-xs font-bold text-[#9ca3af] uppercase tracking-widest text-center">Receiver's Signature</div>
                   </div>
                 </div>
+
+                {/* Footer */}
+                {settings.challanFooter && (
+                  <div className="px-8 py-4 bg-[#f3f4f6] text-center text-xs font-medium text-[#6b7280]">
+                    {settings.challanFooter}
+                  </div>
+                )}
               </div>
             </div>
 

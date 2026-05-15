@@ -6,6 +6,7 @@
 import React from 'react';
 import { Package, Plus, FileDown, FileUp, Trash2, LogOut, LayoutDashboard, Settings, LineChart, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
+import { useSettingsContext } from '../SettingsContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,7 @@ export const Layout: React.FC<LayoutProps> = ({
   onPageChange
 }) => {
   const { theme, setTheme } = useTheme();
+  const { settings } = useSettingsContext();
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] dark:bg-gray-950 text-[#1D1D1B] dark:text-gray-100 font-sans transition-colors duration-200">
@@ -42,7 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   <Package className="text-white w-6 h-6" />
                 </div>
                 <div>
-                  <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">Dharmveer Inventory</h1>
+                  <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">{settings.companyName}</h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">Track and manage your inventory</p>
                 </div>
               </div>

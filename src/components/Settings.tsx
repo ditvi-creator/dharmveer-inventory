@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Settings as SettingsIcon, Bell, Palette, Database, Save, RotateCcw, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme, ThemeType } from '../ThemeContext';
+import { useSettingsContext } from '../SettingsContext';
 
 import { Godown } from '../types';
 import { Plus, Trash2 } from 'lucide-react';
@@ -16,18 +17,11 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
   const [localGodowns, setLocalGodowns] = useState<Godown[]>(godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}]);
   const [newGodownName, setNewGodownName] = useState('');
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'appearance' | 'data' | 'challan'>('general');
+  const { settings, updateSettings } = useSettingsContext();
+  const [localSettings, setLocalSettings] = useState(settings);
   const { theme, setTheme, lightModeTime, setLightModeTime, darkModeTime, setDarkModeTime } = useTheme();
 
-  // Mock state for notification settings
-  const [reminderThreshold, setReminderThreshold] = useState('10');
-  const [reminderTime, setReminderTime] = useState('09:00');
-  const [emailNotifications, setEmailNotifications] = useState(true);
 
-  // Challan mock state
-  const [challanPrefix, setChallanPrefix] = useState('CHL-');
-  const [challanTerms, setChallanTerms] = useState('1. Goods once sold will not be taken back.\n2. Interest @18% p.a. will be charged if payment is not made within the stipulated time.\n3. Subject to local jurisdiction.');
-  const [challanFooter, setChallanFooter] = useState('Thank you for your business!');
-  const [challanShowSignature, setChallanShowSignature] = useState(true);
 
   const [customSound, setCustomSound] = useState<string | null>(() => {
     return localStorage.getItem('customReminderSound');
@@ -60,6 +54,23 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
       const audio = new Audio(customSound);
       audio.play().catch(e => console.error('Failed to play sound', e));
     }
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveChanges = () => {
+    setIsSaving(true);
+    // Simulate save delay
+    setTimeout(() => {
+      if (setGodowns) {
+        setGodowns(localGodowns);
+      }
+      updateSettings(localSettings);
+      setIsSaving(false);
+      import('sonner').then(({ toast }) => {
+        toast.success("Settings saved successfully.");
+      });
+    }, 800);
   };
 
   return (
@@ -162,7 +173,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                     </div>
                     <input 
                       type="text" 
-                      defaultValue="Dharmveer Inventory"
+                      value={localSettings.companyName}
+                      onChange={(e) => setLocalSettings({...localSettings, companyName: e.target.value})}
                       className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none w-full sm:w-64"
                     />
                   </div>
@@ -173,7 +185,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                       <h4 className="font-medium text-gray-900 dark:text-white">Items Per Page</h4>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Number of items to show in the stock table.</p>
                     </div>
-                    <select className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none w-full sm:w-64 cursor-pointer">
+                    <select value={localSettings.itemsPerPage} onChange={(e) => setLocalSettings({...localSettings, itemsPerPage: e.target.value})} className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none w-full sm:w-64 cursor-pointer">
                       <option value="10">10 Items</option>
                       <option value="25">25 Items</option>
                       <option value="50">50 Items</option>
@@ -291,8 +303,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                       <input 
                         type="checkbox" 
                         className="sr-only peer" 
-                        checked={emailNotifications} 
-                        onChange={(e) => setEmailNotifications(e.target.checked)} 
+                        checked={localSettings.enableEmailNotifications} 
+                        onChange={(e) => setLocalSettings({...localSettings, enableEmailNotifications: e.target.checked})} 
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:bg-gray-800 after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
@@ -307,8 +319,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                     <div className="relative w-full sm:w-64">
                       <input 
                         type="number" 
-                        value={reminderThreshold}
-                        onChange={(e) => setReminderThreshold(e.target.value)}
+                        value={localSettings.globalLowStockThreshold}
+                        onChange={(e) => setLocalSettings({...localSettings, globalLowStockThreshold: e.target.value})}
                         className="px-4 py-2 pr-12 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none w-full"
                         min="0"
                       />
@@ -325,9 +337,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                       <p className="text-sm text-gray-500 dark:text-gray-400">When should pending stock reminders be shown or sent?</p>
                     </div>
                     <input 
-                      type="time" 
-                      value={reminderTime}
-                      onChange={(e) => setReminderTime(e.target.value)}
+                      type="time" value={localSettings.preferredReminderTime}
+                      onChange={(e) => setLocalSettings({...localSettings, preferredReminderTime: e.target.value})}
                       className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none w-full sm:w-64"
                     />
                   </div>
@@ -424,6 +435,31 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                       </div>
                     </motion.div>
                   )}
+
+                  {/* Setting Item */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Theme Color</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Choose the primary accent color for the application.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {[
+                        { id: 'blue', name: 'Blue', color: '#2563eb' },
+                        { id: 'green', name: 'Green', color: '#16a34a' },
+                        { id: 'purple', name: 'Purple', color: '#9333ea' },
+                        { id: 'rose', name: 'Rose', color: '#e11d48' },
+                        { id: 'amber', name: 'Amber', color: '#d97706' },
+                      ].map(c => (
+                        <button
+                          key={c.id}
+                          onClick={() => setLocalSettings({...localSettings, themeColor: c.id})}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${localSettings.themeColor === c.id ? 'ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-gray-800' : ''}`}
+                          style={{ backgroundColor: c.color }}
+                          title={c.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -478,8 +514,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                     </div>
                     <input 
                       type="text" 
-                      value={challanPrefix}
-                      onChange={(e) => setChallanPrefix(e.target.value)}
+                      value={localSettings.challanPrefix}
+                      onChange={(e) => setLocalSettings({...localSettings, challanPrefix: e.target.value})}
                       className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none w-full sm:w-64"
                       placeholder="e.g., CHL- or INV-"
                     />
@@ -492,8 +528,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                       <p className="text-sm text-gray-500 dark:text-gray-400">Default terms that appear at the bottom of the challan.</p>
                     </div>
                     <textarea 
-                      value={challanTerms}
-                      onChange={(e) => setChallanTerms(e.target.value)}
+                      value={localSettings.challanTerms}
+                      onChange={(e) => setLocalSettings({...localSettings, challanTerms: e.target.value})}
                       rows={4}
                       className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none resize-none"
                     />
@@ -507,8 +543,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                     </div>
                     <input 
                       type="text" 
-                      value={challanFooter}
-                      onChange={(e) => setChallanFooter(e.target.value)}
+                      value={localSettings.challanFooter}
+                      onChange={(e) => setLocalSettings({...localSettings, challanFooter: e.target.value})}
                       placeholder="e.g., Thank you for your business!"
                       className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium text-gray-700 dark:text-gray-200 outline-none"
                     />
@@ -524,8 +560,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                       <input 
                         type="checkbox" 
                         className="sr-only peer" 
-                        checked={challanShowSignature} 
-                        onChange={(e) => setChallanShowSignature(e.target.checked)} 
+                        checked={localSettings.challanShowSignature} 
+                        onChange={(e) => setLocalSettings({...localSettings, challanShowSignature: e.target.checked})} 
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:bg-gray-800 after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
@@ -542,9 +578,25 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
               <RotateCcw className="w-4 h-4" />
               Reset Defaults
             </button>
-            <button className="px-5 py-2 flex items-center gap-2 bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm rounded-lg transition-colors">
-              <Save className="w-4 h-4" />
-              Save Changes
+            <button 
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="px-5 py-2 flex items-center gap-2 bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </div>
