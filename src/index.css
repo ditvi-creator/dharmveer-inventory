@@ -50,3 +50,55 @@ body {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(156, 163, 175, 0.8);
 }
+
+@media print {
+  body.printing-challan-active > #root {
+    display: none !important;
+  }
+  
+  #print-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #print-container > div {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 15mm;
+  }
+  
+  body { 
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+  
+  #print-container .border-b,
+  #print-container .border-t,
+  #print-container .border-\\[\\#f3f4f6\\],
+  #print-container .border-\\[\\#e5e7eb\\],
+  #print-container .border-\\[\\#d1d5db\\],
+  #print-container .border-\\[\\#1f2937\\] {
+    border-color: #000 !important;
+  }
+}
