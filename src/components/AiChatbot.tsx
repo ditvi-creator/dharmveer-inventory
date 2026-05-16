@@ -91,7 +91,12 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
     setLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('Gemini API key is not configured. Please check your Secret settings.');
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       
       const functionDeclarations: FunctionDeclaration[] = [
         {
@@ -144,8 +149,18 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         }
       ];
 
-      const chat = ai.chats.create({
+      // Use generateContent with history instead of chat object for better reliability
+      const history = messages.map(m => ({
+        role: m.role,
+        parts: [{ text: m.content }]
+      }));
+
+      const result = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
+        contents: [
+          ...history,
+          { role: 'user', parts: [{ text }] }
+        ],
         config: {
           systemInstruction: `You are an AI Inventory Assistant. You help users manage their stock and navigate the app.
           Use the provided functions to get data from the inventory or perform UI actions.
@@ -156,8 +171,6 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
           tools: [{ functionDeclarations }]
         }
       });
-
-      const result = await chat.sendMessage({ message: text });
       
       let finalContent = result.text || "";
       const calls = result.functionCalls;
