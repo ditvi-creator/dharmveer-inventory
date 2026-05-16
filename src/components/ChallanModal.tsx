@@ -19,6 +19,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
   const componentRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [printSize, setPrintSize] = React.useState<'full' | 'half' | 'quarter'>('full');
 
   const challanNo = React.useMemo(() => {
     return booking?.challanNo || '';
@@ -50,6 +51,23 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
       .map(node => node.outerHTML)
       .join('');
 
+    let scaleStyle = '';
+    if (printSize === 'half') {
+      scaleStyle = `
+        #print-container {
+          transform: scale(0.707);
+          transform-origin: top left;
+        }
+      `;
+    } else if (printSize === 'quarter') {
+      scaleStyle = `
+        #print-container {
+          transform: scale(0.5);
+          transform-origin: top left;
+        }
+      `;
+    }
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -64,6 +82,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               }
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
+              ${scaleStyle}
             }
           </style>
         </head>
@@ -273,13 +292,6 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
 
             <div className="px-6 py-6 flex flex-col sm:flex-row justify-end gap-3 mt-2">
               <button
-                type="button"
-                onClick={onClose}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors"
-              >
-                Close
-              </button>
-              <button
                 onClick={handleShareWhatsApp}
                 disabled={isSharing}
                 className="w-full sm:w-auto px-6 py-2.5 bg-[#25D366] text-white rounded-[8px] text-[15px] font-medium hover:bg-[#128C7E] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -292,7 +304,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 ) : (
                   <>
                     <MessageCircle className="w-[20px] h-[20px]" />
-                    Share WhatsApp
+                    WhatsApp
                   </>
                 )}
               </button>
@@ -309,17 +321,28 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    Export PDF
+                    PDF
                   </>
                 )}
               </button>
-              <button
-                onClick={() => handlePrint()}
-                className="w-full sm:w-auto px-6 py-2.5 bg-[#2962d9] text-white rounded-[8px] text-[15px] font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Printer className="w-4 h-4" />
-                Print
-              </button>
+              <div className="flex w-full sm:w-auto gap-2">
+                <select
+                  value={printSize}
+                  onChange={(e) => setPrintSize(e.target.value as any)}
+                  className="px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[14px] font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="full">Full Page</option>
+                  <option value="half">Half (1/2)</option>
+                  <option value="quarter">Quarter (1/4)</option>
+                </select>
+                <button
+                  onClick={() => handlePrint()}
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2962d9] text-white rounded-[8px] text-[15px] font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
