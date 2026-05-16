@@ -335,7 +335,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
               <div className="relative flex items-center gap-2">
                 <button
                   onClick={toggleListening}
-                  className={`p-3 rounded-xl transition-all ${
+                  className={`py-3 px-[10px] rounded-xl transition-all ${
                     isListening 
                       ? 'bg-red-100 text-red-600 animate-pulse' 
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
