@@ -23,6 +23,8 @@ import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from
 import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
+import { useTheme } from './ThemeContext';
+import { AiChatbot } from './components/AiChatbot';
 
 enum OperationType {
   CREATE = 'create',
@@ -222,6 +224,7 @@ function LandingPage({ onSignIn, appName }: { onSignIn: () => void, appName: str
 
 export default function App() {
   const { settings } = useSettingsContext();
+  const { setTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
@@ -1443,6 +1446,13 @@ export default function App() {
         onClose={() => setSelectedChallanBooking(null)}
         item={selectedChallanBooking?.item || null}
         booking={selectedChallanBooking?.booking || null}
+      />
+      
+      <AiChatbot 
+        items={items}
+        onOpenAddItem={openAddModal}
+        onPageChange={setCurrentPage}
+        onToggleTheme={setTheme}
       />
     </Layout>
   );
