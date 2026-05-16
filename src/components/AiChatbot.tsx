@@ -36,6 +36,15 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
+  // Check for API key on mount
+  useEffect(() => {
+    if (!process.env.GEMINI_API_KEY) {
+      toast.error('Gemini API key is not set. Please add it in Settings > Secrets.', {
+        duration: 5000,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -93,7 +102,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        throw new Error('Gemini API key is not configured. Please check your Secret settings.');
+        throw new Error('Gemini API key is missing from environment. Please set GEMINI_API_KEY in Secrets.');
       }
 
       const ai = new GoogleGenAI({ apiKey });
@@ -149,14 +158,17 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         }
       ];
 
-      // Use generateContent with history instead of chat object for better reliability
-      const history = messages.map(m => ({
-        role: m.role,
-        parts: [{ text: m.content }]
-      }));
+      // Important: Gemini conversation must start with a 'user' role.
+      // We skip the initial model greeting message in the history.
+      const history = messages
+        .filter((m, i) => i > 0 || m.role === 'user')
+        .map(m => ({
+          role: m.role,
+          parts: [{ text: m.content }]
+        }));
 
       const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-flash-latest",
         contents: [
           ...history,
           { role: 'user', parts: [{ text }] }
