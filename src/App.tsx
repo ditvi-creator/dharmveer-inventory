@@ -13,6 +13,7 @@ import { ChallanModal } from './components/ChallanModal';
 import { HistoryModal } from './components/HistoryModal';
 import { Settings as SettingsPage } from './components/Settings';
 import { Analytics as AnalyticsPage } from './components/Analytics';
+import { UserProfile } from './components/UserProfile';
 import { StockItem, Booking } from './types';
 import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -224,7 +225,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics' | 'profile'>('dashboard');
 
   const [godowns, setGodowns] = useState<{id: string, name: string}[]>(() => {
     const saved = localStorage.getItem('app_godowns');
@@ -1166,12 +1167,7 @@ export default function App() {
             )}
           </AnimatePresence>
 
-          {/* We can inject Logout in Header via a portal or just float it if Layout doesn't take it... Wait, Layout is shared. Let's add a logout button. */}
-          <div className="flex justify-end mb-4">
-            <button onClick={logout} className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-white flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
-              <LogIn className="w-4 h-4 rotate-180" /> Logout
-            </button>
-          </div>
+          {/* Removed float logout */}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
@@ -1393,6 +1389,8 @@ export default function App() {
         </>
       ) : currentPage === 'analytics' ? (
         <AnalyticsPage items={items} />
+      ) : currentPage === 'profile' ? (
+        <UserProfile user={user} onLogout={logout} />
       ) : (
         <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
       )}

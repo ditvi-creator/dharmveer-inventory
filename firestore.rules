@@ -41,6 +41,15 @@ service cloud.firestore {
              (data.get('bookings', []) is list) && data.get('bookings', []).size() <= 100;
     }
 
+    function isValidUser(data) {
+      return data.keys().hasAll(['fullName', 'updatedAt']) &&
+             data.fullName is string && data.fullName.size() <= 200 &&
+             data.updatedAt is timestamp &&
+             (data.get('phoneNumber', '') is string) && (data.get('phoneNumber', '').size() <= 50) &&
+             (data.get('companyName', '') is string) && (data.get('companyName', '').size() <= 200) &&
+             (data.get('businessAddress', '') is string) && (data.get('businessAddress', '').size() <= 500);
+    }
+
     match /stockItems/{itemId} {
       allow get: if isSignedIn() && existing().ownerId == request.auth.uid && isValidId(itemId);
       allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
@@ -60,6 +69,18 @@ service cloud.firestore {
       allow delete: if isSignedIn() && 
                     isValidId(itemId) &&
                     existing().ownerId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && 
+                    request.auth.uid == userId && 
+                    isValidUser(incoming()) &&
+                    incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && 
+                    request.auth.uid == userId && 
+                    isValidUser(incoming()) &&
+                    incoming().updatedAt == request.time;
     }
   }
 }

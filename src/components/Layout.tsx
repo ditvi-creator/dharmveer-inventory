@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Package, Plus, FileDown, FileUp, Trash2, LogOut, LayoutDashboard, Settings, LineChart, Sun, Moon, Monitor } from 'lucide-react';
+import { Package, Plus, FileDown, FileUp, Trash2, LogOut, LayoutDashboard, Settings, LineChart, Sun, Moon, Monitor, User } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 import { useSettingsContext } from '../SettingsContext';
 
@@ -15,8 +15,8 @@ interface LayoutProps {
   onExportCSV: () => void;
   onImportCSV: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDownloadTemplate: () => void;
-  currentPage: 'dashboard' | 'settings' | 'analytics';
-  onPageChange: (page: 'dashboard' | 'settings' | 'analytics') => void;
+  currentPage: 'dashboard' | 'settings' | 'analytics' | 'profile';
+  onPageChange: (page: 'dashboard' | 'settings' | 'analytics' | 'profile') => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -71,6 +71,13 @@ export const Layout: React.FC<LayoutProps> = ({
                 >
                   <Settings className="w-4 h-4" />
                   Settings
+                </button>
+                <button
+                  onClick={() => onPageChange('profile')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${currentPage === 'profile' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-100 dark:border-gray-600' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'}`}
+                >
+                  <User className="w-4 h-4" />
+                  Profile
                 </button>
               </div>
             </div>
@@ -137,8 +144,15 @@ export const Layout: React.FC<LayoutProps> = ({
               onClick={() => onPageChange('settings')}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-semibold transition-colors ${currentPage === 'settings' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-100 dark:border-gray-700' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50'}`}
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 hidden sm:block" />
               Settings
+            </button>
+            <button
+              onClick={() => onPageChange('profile')}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-semibold transition-colors ${currentPage === 'profile' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-100 dark:border-gray-700' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-800/50'}`}
+            >
+              <User className="w-4 h-4 hidden sm:block" />
+              Profile
             </button>
           </div>
         </div>
