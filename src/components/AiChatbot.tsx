@@ -71,6 +71,8 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         setIsListening(false);
         if (event.error === 'not-allowed') {
           toast.error('Microphone permission denied.');
+        } else if (event.error === 'network') {
+          toast.error('Network error during speech recognition.');
         }
       };
 
@@ -82,11 +84,23 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
     }
   }, []);
 
+  // Update recognition language if user changes it or we detect it
+  // For now, let's just use the browser's language as default
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = navigator.language || 'en-US';
+    }
+  }, []);
+
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
       setIsListening(true);
+      // Ensure we use the latest browser language
+      if (recognitionRef.current) {
+        recognitionRef.current.lang = navigator.language || 'en-US';
+      }
       recognitionRef.current?.start();
     }
   };
@@ -110,7 +124,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
       const functionDeclarations: FunctionDeclaration[] = [
         {
           name: "get_stock_balance",
-          description: "Get the current balance of a specific stock item",
+          description: "Get the current balance and size of a specific stock item. Use this when the user asks 'what is the balance of X' or 'how many of X is left'.",
           parameters: {
             type: Type.OBJECT,
             properties: {
@@ -121,7 +135,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         },
         {
           name: "get_item_bookings",
-          description: "Get details of parties who have booked a particular item and the quantities they booked",
+          description: "Get details of parties who have booked a particular item and the quantities they booked. Use this when the user asks 'who booked X' or 'party name for X'.",
           parameters: {
             type: Type.OBJECT,
             properties: {
@@ -132,7 +146,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         },
         {
           name: "open_ui_component",
-          description: "Open a specific part of the application UI",
+          description: "Open a specific part of the application UI like the add item box, settings, or analytics page.",
           parameters: {
             type: Type.OBJECT,
             properties: {
@@ -147,7 +161,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         },
         {
           name: "set_theme",
-          description: "Change the application theme to dark or light mode",
+          description: "Change the application theme to dark or light mode.",
           parameters: {
             type: Type.OBJECT,
             properties: {
@@ -168,19 +182,38 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
         }));
 
       const result = await ai.models.generateContent({
-        model: "gemini-flash-latest",
+        model: "gemini-3-flash-preview",
         contents: [
           ...history,
           { role: 'user', parts: [{ text }] }
         ],
         config: {
-          systemInstruction: `You are an AI Inventory Assistant. You help users manage their stock and navigate the app.
-          Use the provided functions to get data from the inventory or perform UI actions.
-          The current inventory has ${items.length} items.
-          If the user asks about a specific item, use the get_stock_balance or get_item_bookings functions.
-          If multiple items match a name roughly, you can mention them in your response.
-          Be professional, concise, and helpful.`,
-          tools: [{ functionDeclarations }]
+          systemInstruction: `You are an AI Inventory Assistant for a business management app. 
+          You help users manage stock, check bookings, and navigate the app UI.
+          
+          MULTILINGUAL SUPPORT:
+          - You can understand and respond in ANY language (Hindi, English, Spanish, etc.).
+          - ALWAYS respond in the SAME language the user used to speak or type.
+          
+          INVENTORY CONTEXT:
+          - The current inventory has ${items.length} items.
+          - Items often have names, sizes, balances, and bookings.
+          - If a user asks "what is the balance of X", use get_stock_balance.
+          - If a user asks "booked party name for X", use get_item_bookings.
+          - If you find multiple matching items, list them all clearly.
+          
+          UI ACTIONS:
+          - If a user says "open add item box" or "add new item", use open_ui_component(component="add_item").
+          - If a user says "switch to dark mode", use set_theme(mode="dark").
+          
+          PERSONALITY:
+          - Be professional, warm, and helpful.
+          - Keep answers concise for a chat interface.`,
+          tools: [
+            { functionDeclarations },
+            { googleSearch: {} }
+          ],
+          toolConfig: { includeServerSideToolInvocations: true }
         }
       });
       
@@ -212,7 +245,7 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
                 } else {
                   finalContent += `\nBookings for ${item.name}:`;
                   bookings.forEach(b => {
-                    finalContent += `\n- ${b.partyName}: ${b.qty} units`;
+                    finalContent += `\n- Party: ${b.partyName}, Quantity: ${b.qty}`;
                   });
                 }
               });
@@ -221,30 +254,44 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
             const comp = (call.args as any).component;
             if (comp === 'add_item') {
               onOpenAddItem();
-              finalContent += "\nOpening the 'Add Item' dialog for you.";
+              finalContent += "\nSure, I've opened the 'Add Item' box for you.";
             } else {
               onPageChange(comp);
-              finalContent += `\nSwitching to the ${comp} page.`;
+              finalContent += `\nDone! Navigating to the ${comp} page.`;
             }
           } else if (call.name === 'set_theme') {
             const mode = (call.args as any).mode;
             onToggleTheme(mode);
-            finalContent += `\nSwitching the theme to ${mode} mode.`;
+            finalContent += `\nUnderstood. Switching to ${mode} mode.`;
           }
         }
       }
 
-      const modelMessage: Message = { role: 'model', content: finalContent || "I've performed the requested action." };
+      const modelMessage: Message = { role: 'model', content: finalContent || "I've handled that for you." };
       setMessages(prev => [...prev, modelMessage]);
 
       if (speechEnabled && finalContent) {
         speak(finalContent);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      toast.error('AI error. Please check your Gemini API key.');
-      setMessages(prev => [...prev, { role: 'model', content: "Sorry, I've encountered an error processing that request." }]);
+      let errorMessage = "Sorry, I've encountered an error processing that request.";
+      
+      const errorStr = error.message || error.toString() || "";
+      
+      if (errorStr.includes('API key')) {
+        errorMessage = 'AI error. Please check your Gemini API key in Secrets.';
+      } else if (errorStr.includes('PERMISSION_DENIED') || errorStr.includes('403')) {
+        errorMessage = 'Permission denied. Please ensure your Gemini API key is valid and has billing enabled if required.';
+      } else if (errorStr.includes('RESOURCE_EXHAUSTED') || errorStr.includes('429')) {
+        errorMessage = 'API quota exhausted. Please try again later or upgrade your Gemini plan.';
+      } else if (errorStr.includes('NOT_FOUND') || errorStr.includes('404')) {
+        errorMessage = 'Model not found. Please check your Gemini API configuration.';
+      }
+
+      toast.error(errorMessage);
+      setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
     } finally {
       setLoading(false);
     }
@@ -253,11 +300,33 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
   const speak = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
+    
     const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Find a better, more natural human-sounding voice if available
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Priority: 1. Natural/Premium voices, 2. Google voices, 3. Any voice matching language
+    // Try to match voice language to current browser language first
+    const langMatch = navigator.language || 'en-US';
+    
+    let selectedVoice = voices.find(v => v.lang === langMatch && (v.name.includes('Natural') || v.name.includes('Neural')));
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith(langMatch.split('-')[0]) && v.name.includes('Google'));
+    }
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith(langMatch.split('-')[0]));
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    
     utterance.rate = 1;
     utterance.pitch = 1;
     window.speechSynthesis.speak(utterance);
   };
+
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
