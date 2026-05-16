@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Mic, MicOff, Send, X, MessageSquare, Loader2, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Bot, Mic, MicOff, Send, X, MessageSquare, Loader2, Sparkles, Volume2, VolumeX, Key } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import { StockItem } from '../types';
@@ -210,10 +210,8 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
           - Be professional, warm, and helpful.
           - Keep answers concise for a chat interface.`,
           tools: [
-            { functionDeclarations },
-            { googleSearch: {} }
-          ],
-          toolConfig: { includeServerSideToolInvocations: true }
+            { functionDeclarations }
+          ]
         }
       });
       
@@ -277,20 +275,29 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
     } catch (error: any) {
       console.error('Chat error:', error);
       let errorMessage = "Sorry, I've encountered an error processing that request.";
+      let showKeyButton = false;
       
       const errorStr = error.message || error.toString() || "";
       
       if (errorStr.includes('API key')) {
         errorMessage = 'AI error. Please check your Gemini API key in Secrets.';
+        showKeyButton = true;
       } else if (errorStr.includes('PERMISSION_DENIED') || errorStr.includes('403')) {
         errorMessage = 'Permission denied. Please ensure your Gemini API key is valid and has billing enabled if required.';
+        showKeyButton = true;
       } else if (errorStr.includes('RESOURCE_EXHAUSTED') || errorStr.includes('429')) {
-        errorMessage = 'API quota exhausted. Please try again later or upgrade your Gemini plan.';
+        errorMessage = 'API quota exhausted. You can connect your own paid API key for higher limits using the key icon at the top.';
+        showKeyButton = true;
       } else if (errorStr.includes('NOT_FOUND') || errorStr.includes('404')) {
         errorMessage = 'Model not found. Please check your Gemini API configuration.';
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        action: showKeyButton ? {
+          label: 'Setup Key',
+          onClick: () => (window as any).aistudio?.openSelectKey()
+        } : undefined
+      });
       setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
     } finally {
       setLoading(false);
@@ -353,6 +360,13 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => (window as any).aistudio?.openSelectKey()}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Connect API Key"
+                >
+                  <Key className="w-4 h-4" />
+                </button>
                 <button 
                   onClick={() => setSpeechEnabled(!speechEnabled)}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors"

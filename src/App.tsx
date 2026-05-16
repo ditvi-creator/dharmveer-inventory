@@ -228,6 +228,10 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics' | 'profile'>('dashboard');
 
   const [godowns, setGodowns] = useState<{id: string, name: string}[]>(() => {
@@ -524,20 +528,27 @@ export default function App() {
     }
   };
 
-  const signUpWithEmail = async () => {
-    if (!email || !password) {
-      alert("Please enter both email and password to sign up.");
+  const signUpWithEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signupEmail || !signupPassword || !signupName) {
+      toast.error("Please enter Name, Email and Password to sign up.");
       return;
     }
     try {
-      const { createUserWithEmailAndPassword } = await import('firebase/auth');
-      await createUserWithEmailAndPassword(auth, email, password);
+      const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+      const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+      await updateProfile(userCredential.user, { displayName: signupName });
+      toast.success("Account created Successfully! You are now logged in.");
     } catch (err: any) {
       console.error(err);
-      if (err.code === 'auth/operation-not-allowed') {
-        alert('Email/Password sign-in is not enabled. Please enable it in Firebase Console -> Authentication -> Sign-in method.');
+      if (err.code === 'auth/email-already-in-use') {
+        toast.error('This email is already in use. Please try logging in.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        toast.error('Email/Password sign-in is not enabled. Please enable it in Firebase Console.');
+      } else if (err.code === 'auth/weak-password') {
+        toast.error('Password is too weak. Please use at least 6 characters.');
       } else {
-        alert(`Sign-up Error: ${err.message}`);
+        toast.error(`Sign-up Error: ${err.message}`);
       }
     }
   };
@@ -968,9 +979,11 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
+          transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
           className="w-full max-w-[400px]"
         >
+          <Toaster position="top-right" />
+          
           {/* Logo Section */}
           <div className="flex justify-center mb-8">
             <div className="w-24 h-24 rounded-full bg-white dark:bg-gray-800 shadow-[0_0_40px_rgba(0,0,0,0.05)] border border-gray-50 dark:border-gray-800/50 flex flex-col items-center justify-center">
@@ -978,7 +991,7 @@ export default function App() {
                 <PackageCheck className="w-6 h-6 text-white" />
               </div>
               <div className="text-[#1a56db] font-bold text-xs tracking-tight leading-none text-center">
-                inventory
+                stockflow
                 <div className="flex items-center justify-center mt-0.5">
                   <div className="h-[1px] w-1.5 bg-[#1a56db]"></div>
                   <span className="text-[8px] font-bold text-[#1a56db] px-0.5 leading-none">manager</span>
@@ -988,82 +1001,184 @@ export default function App() {
             </div>
           </div>
 
-          <div className="text-center mb-8">
-            <h1 className="text-[28px] font-bold text-[#0f172a] mb-2 tracking-tight">Welcome to StockFlow</h1>
-            <p className="text-[#64748b] text-[15px]">Sign in to continue</p>
-          </div>
-
-          <button 
-            onClick={login}
-            className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800 text-[#334155] dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors mb-6 shadow-sm"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Continue with Google
-          </button>
-
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-xs font-semibold text-gray-400 dark:text-gray-400">OR</span>
-            <div className="flex-1 h-px bg-gray-200"></div>
-          </div>
-
-          <form onSubmit={loginWithEmail} className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm font-semibold text-[#334155] dark:text-gray-200 mb-1.5 text-center">Email</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400 dark:text-gray-400"
-                  />
+          <AnimatePresence mode="wait">
+            {authMode === 'login' ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="text-center mb-8">
+                  <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-white mb-2 tracking-tight">Welcome Back</h1>
+                  <p className="text-[#64748b] dark:text-gray-400 text-[15px]">Sign in to manage your inventory</p>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-[#334155] dark:text-gray-200 mb-1.5 text-center">Password</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="........"
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-[#0f172a]/20 focus:border-[#0f172a] transition-all outline-none placeholder:text-gray-400 dark:text-gray-400 tracking-widest"
-                  />
+                <button 
+                  onClick={login}
+                  className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-700 text-[#334155] dark:text-gray-200 border border-gray-200 dark:border-gray-600 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors mb-6 shadow-sm"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Continue with Google
+                </button>
+
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+                  <span className="text-xs font-semibold text-gray-400 dark:text-gray-500">OR</span>
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
                 </div>
-              </div>
 
-            <button 
-              type="submit"
-              className="w-full bg-[#0f172a] dark:bg-blue-600 text-white rounded-xl py-3.5 font-semibold text-[15px] hover:bg-[#1e293b] active:scale-[0.98] transition-all mt-4"
-            >
-              Sign in
-            </button>
-          </form>
+                <form onSubmit={loginWithEmail} className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#334155] dark:text-gray-300 mb-1.5">Email</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                      </div>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none placeholder:text-gray-400 dark:text-white"
+                      />
+                    </div>
+                  </div>
 
-          <div className="flex items-center justify-between text-[14px]">
-            <button className="text-[#64748b] hover:text-[#0f172a] font-medium transition-colors">
-              Forgot password?
-            </button>
-            <div className="text-[#64748b]">
-              Need an account?{' '}
-              <button onClick={signUpWithEmail} className="text-[#334155] dark:text-gray-200 font-semibold hover:text-[#0f172a] transition-colors">
-                Sign up
-              </button>
-            </div>
-          </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#334155] dark:text-gray-300 mb-1.5">Password</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none placeholder:text-gray-400 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-[#0f172a] dark:bg-blue-600 text-white rounded-xl py-3.5 font-semibold text-[15px] hover:bg-[#1e293b] dark:hover:bg-blue-700 active:scale-[0.98] transition-all mt-4"
+                  >
+                    Sign in
+                  </button>
+                </form>
+
+                <div className="flex flex-col gap-3 text-center text-[14px]">
+                  <button className="text-[#64748b] hover:text-[#0f172a] dark:hover:text-white font-medium transition-colors">
+                    Forgot password?
+                  </button>
+                  <p className="text-[#64748b] dark:text-gray-400">
+                    Don't have an account?{' '}
+                    <button 
+                      onClick={() => setAuthMode('signup')}
+                      className="text-[#1a56db] dark:text-blue-400 font-semibold hover:underline"
+                    >
+                      Create account
+                    </button>
+                  </p>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="signup"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="text-center mb-8">
+                  <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-white mb-2 tracking-tight">Join StockFlow</h1>
+                  <p className="text-[#64748b] dark:text-gray-400 text-[15px]">Create your free account today</p>
+                </div>
+
+                <form onSubmit={signUpWithEmail} className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#334155] dark:text-gray-300 mb-1.5">Full Name</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={signupName}
+                        onChange={(e) => setSignupName(e.target.value)}
+                        placeholder="John Doe"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none placeholder:text-gray-400 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[#334155] dark:text-gray-300 mb-1.5">Email Address</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                      </div>
+                      <input
+                        type="email"
+                        required
+                        value={signupEmail}
+                        onChange={(e) => setSignupEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none placeholder:text-gray-400 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-[#334155] dark:text-gray-300 mb-1.5">Create Password</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                        placeholder="Minimum 6 characters"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-[15px] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none placeholder:text-gray-400 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-[#1a56db] text-white rounded-xl py-3.5 font-semibold text-[15px] hover:bg-blue-700 active:scale-[0.98] transition-all mt-4"
+                  >
+                    Create Account
+                  </button>
+                </form>
+
+                <div className="text-center text-[14px]">
+                  <p className="text-[#64748b] dark:text-gray-400">
+                    Already have an account?{' '}
+                    <button 
+                      onClick={() => setAuthMode('login')}
+                      className="text-[#1a56db] dark:text-blue-400 font-semibold hover:underline"
+                    >
+                      Sign in
+                    </button>
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     );
