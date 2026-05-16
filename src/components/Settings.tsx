@@ -523,9 +523,20 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
 
                   {/* Setting Item */}
                   <div className="flex flex-col py-4 border-b border-gray-50 dark:border-gray-800/50 gap-4">
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">Terms & Conditions</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Default terms that appear at the bottom of the challan.</p>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">Terms & Conditions</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Default terms that appear at the bottom of the challan.</p>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer mt-1 sm:mt-0">
+                        <input 
+                          type="checkbox" 
+                          checked={localSettings.challanPrintTerms} 
+                          onChange={(e) => setLocalSettings({...localSettings, challanPrintTerms: e.target.checked})} 
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show in print</span>
+                      </label>
                     </div>
                     <textarea 
                       value={localSettings.challanTerms}
@@ -537,9 +548,20 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
 
                   {/* Setting Item */}
                   <div className="flex flex-col py-4 border-b border-gray-50 dark:border-gray-800/50 gap-4">
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">Footer Text / Thank You Message</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">A short message to display at the very bottom.</p>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">Footer Text / Thank You Message</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">A short message to display at the very bottom.</p>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer mt-1 sm:mt-0">
+                        <input 
+                          type="checkbox" 
+                          checked={localSettings.challanPrintFooter} 
+                          onChange={(e) => setLocalSettings({...localSettings, challanPrintFooter: e.target.checked})} 
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show in print</span>
+                      </label>
                     </div>
                     <input 
                       type="text" 

@@ -10,6 +10,8 @@ export interface AppSettings {
   challanPrefix: string;
   challanTerms: string;
   challanFooter: string;
+  challanPrintTerms: boolean;
+  challanPrintFooter: boolean;
   challanShowSignature: boolean;
   themeColor: string;
 }
@@ -24,6 +26,8 @@ export const defaultSettings: AppSettings = {
   challanPrefix: 'CHL-',
   challanTerms: '1. Goods once sold will not be taken back.\n2. Interest @18% p.a. will be charged if payment is not made within the stipulated time.\n3. Subject to local jurisdiction.',
   challanFooter: 'Thank you for your business!',
+  challanPrintTerms: true,
+  challanPrintFooter: true,
   challanShowSignature: true,
   themeColor: 'blue',
 };

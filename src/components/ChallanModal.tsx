@@ -198,7 +198,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               </button>
             </div>
 
-            <div className="px-6 py-2 pb-6">
+            <div className="pl-6 pr-6 py-2 pb-6">
               <div ref={componentRef} id="challan-content" className="bg-[#ffffff] border border-[#e5e7eb] rounded-xl overflow-hidden flex flex-col shadow-sm">
                 
                 <div className="p-8 pb-0">
@@ -260,8 +260,8 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 </div>
 
                 {/* Terms and Conditions */}
-                {settings.challanTerms && (
-                  <div className="px-8 mt-6">
+                {settings.challanTerms && settings.challanPrintTerms && (
+                  <div className="px-8 mt-6 challan-terms">
                     <div className="text-xs font-bold text-[#9ca3af] uppercase tracking-widest mb-2">Terms & Conditions</div>
                     <div className="text-xs text-[#6b7280] whitespace-pre-wrap leading-relaxed">{settings.challanTerms}</div>
                   </div>
@@ -282,15 +282,15 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 </div>
 
                 {/* Footer */}
-                {settings.challanFooter && (
-                  <div className="px-8 py-4 bg-[#f3f4f6] text-center text-xs font-medium text-[#6b7280]">
+                {settings.challanFooter && settings.challanPrintFooter && (
+                  <div className="px-8 py-4 bg-[#f3f4f6] text-center text-xs font-medium text-[#6b7280] challan-footer">
                     {settings.challanFooter}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="px-6 py-6 flex flex-col sm:flex-row justify-end gap-3 mt-2">
+            <div className="pl-5 pr-6 py-6 flex flex-col sm:flex-row justify-end gap-3 mt-2">
               <button
                 onClick={handleShareWhatsApp}
                 disabled={isSharing}
