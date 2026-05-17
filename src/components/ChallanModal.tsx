@@ -20,6 +20,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
   const [isSharing, setIsSharing] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
   const [printSize, setPrintSize] = React.useState<'full' | 'half' | 'quarter'>('full');
+  const [selectedQuadrant, setSelectedQuadrant] = React.useState<number>(0); // 0 means all, 1-4 for specific quadrants
 
   const challanNo = React.useMemo(() => {
     return booking?.challanNo || '';
@@ -52,20 +53,131 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
       .join('');
 
     let scaleStyle = '';
+    let printBodyClass = '';
+    let copyCount = 1;
+
     if (printSize === 'half') {
+      copyCount = 2;
+      printBodyClass = 'half-grid';
       scaleStyle = `
-        #print-container {
-          transform: scale(0.707);
-          transform-origin: top left;
+        .half-grid {
+          display: grid;
+          grid-template-rows: 1fr 1fr;
+          width: 8.27in;
+          height: 11.69in;
+          background: #f3f4f6;
         }
+        .challan-copy {
+          height: 5.845in;
+          background: white;
+          border-bottom: 1px dashed #cbd5e1;
+          padding: 30px !important;
+          overflow: hidden;
+          position: relative;
+        }
+        .challan-copy:last-child { border-bottom: none; }
+        
+        .challan-copy #challan-content {
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        /* Adjust fonts for half size */
+        .challan-copy h1 { font-size: 18px !important; }
+        .challan-copy .text-2xl { font-size: 18px !important; }
+        .challan-copy .text-xl { font-size: 16px !important; }
+        .challan-copy .text-lg { font-size: 14px !important; }
+        .challan-copy .p-8 { padding: 0 !important; }
+        .challan-copy .px-8 { padding-left: 0 !important; padding-right: 0 !important; }
+        .challan-copy .mt-8 { margin-top: 15px !important; }
+        .challan-copy .py-10 { padding-top: 20px !important; padding-bottom: 0 !important; }
       `;
     } else if (printSize === 'quarter') {
+      copyCount = 4;
+      printBodyClass = 'quarter-grid';
+      scaleStyle = `
+        .quarter-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: 1fr 1fr;
+          width: 8.27in;
+          height: 11.69in;
+          background: #f3f4f6;
+        }
+        .challan-copy {
+          width: 4.135in;
+          height: 5.845in;
+          background: white;
+          border: 0.5px dashed #cbd5e1;
+          padding: 15px !important;
+          overflow: hidden;
+          position: relative;
+        }
+        
+        .challan-copy #challan-content {
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        /* Adjustments for quarter size to fit compactly */
+        .challan-copy .border-b { padding-bottom: 8px !important; margin-bottom: 8px !important; }
+        .challan-copy h1 { font-size: 13px !important; margin-bottom: 2px !important; }
+        .challan-copy .text-2xl { font-size: 13px !important; }
+        .challan-copy .text-xl { font-size: 11px !important; }
+        .challan-copy .text-sm { font-size: 8px !important; }
+        .challan-copy .text-xs { font-size: 7px !important; }
+        
+        .challan-copy .p-8 { padding: 0 !important; }
+        .challan-copy .px-8 { padding-left: 0 !important; padding-right: 0 !important; }
+        .challan-copy .mb-8 { margin-bottom: 8px !important; }
+        .challan-copy .mt-8 { margin-top: 8px !important; }
+        .challan-copy .py-10 { padding-top: 10px !important; padding-bottom: 0 !important; }
+        .challan-copy .py-4 { padding-top: 4px !important; padding-bottom: 4px !important; }
+        .challan-copy .gap-4 { gap: 4px !important; }
+        .challan-copy .gap-8 { gap: 6px !important; }
+        
+        .challan-copy table { font-size: 8px !important; }
+        .challan-copy th, .challan-copy td { padding: 3px !important; }
+        .challan-copy .text-lg { font-size: 9px !important; }
+        
+        .challan-copy .w-40 { width: 60px !important; }
+        .challan-copy .signature-area { margin-top: 4px !important; }
+
+        /* Hide specific elements if space is tight */
+        .challan-copy .challan-terms { display: none !important; }
+        .challan-copy .challan-footer { display: none !important; }
+      `;
+    } else {
       scaleStyle = `
         #print-container {
-          transform: scale(0.5);
-          transform-origin: top left;
+          padding: 40px;
         }
       `;
+    }
+
+    const challanHtml = printContent.outerHTML;
+    let copiesHtml = '';
+    
+    if (printSize === 'half' && selectedQuadrant > 0) {
+      for (let i = 1; i <= 2; i++) {
+        if (i === selectedQuadrant) {
+          copiesHtml += `<div class="challan-copy">${challanHtml}</div>`;
+        } else {
+          copiesHtml += `<div class="challan-copy" style="border: none; background: transparent;"></div>`;
+        }
+      }
+    } else if (printSize === 'quarter' && selectedQuadrant > 0) {
+      for (let i = 1; i <= 4; i++) {
+        if (i === selectedQuadrant) {
+          copiesHtml += `<div class="challan-copy">${challanHtml}</div>`;
+        } else {
+          copiesHtml += `<div class="challan-copy" style="border: none; background: transparent;"></div>`;
+        }
+      }
+    } else {
+      for (let i = 0; i < copyCount; i++) {
+        copiesHtml += `<div class="challan-copy">${challanHtml}</div>`;
+      }
     }
 
     printWindow.document.write(`
@@ -75,21 +187,29 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
           <title>Challan_${challanNo}</title>
           ${styleTags}
           <style>
+            * {
+              box-sizing: border-box;
+            }
+            @page {
+              margin: 0;
+              size: A4 portrait;
+            }
             @media print {
               body { 
                 margin: 0; 
-                padding: 20px; 
+                padding: 0;
               }
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
               ${scaleStyle}
             }
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            ${scaleStyle}
           </style>
         </head>
-        <body class="bg-white">
-          <div id="print-container">
-            ${printContent.outerHTML}
-          </div>
+        <body class="${printBodyClass}">
+          ${copiesHtml}
           <script>
             // Wait for styles to load
             setTimeout(() => {
@@ -198,18 +318,15 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               </button>
             </div>
 
-            <div className="pl-6 pr-6 py-2 pb-6">
+            <div className="pl-6 pr-6 py-2 pb-6 mb-[30px]">
               <div ref={componentRef} id="challan-content" className="bg-[#ffffff] border border-[#e5e7eb] rounded-xl overflow-hidden flex flex-col shadow-sm">
                 
                 <div className="p-8 pb-0">
                   {/* Header Row */}
                   <div className="flex justify-between items-start border-b border-[#e5e7eb] pb-6 mb-6">
                     <div className="flex flex-col">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Package className="w-7 h-7 text-[#2563eb]" />
-                        <h1 className="text-2xl font-black tracking-tighter text-[#111827] uppercase">{settings.companyName}</h1>
-                      </div>
-                      <p className="text-[#6b7280] text-sm font-medium">Delivery Challan - Original</p>
+                      <h1 className="text-2xl font-black tracking-tighter text-[#111827] uppercase mb-1">Delivery challan</h1>
+                      <p className="text-[#6b7280] text-sm font-medium uppercase tracking-wide">Original Copy</p>
                     </div>
                     
                     <div className="text-right flex flex-col items-end gap-1">
@@ -230,7 +347,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 </div>
 
                 {/* Table */}
-                <div className="w-full overflow-x-auto px-8">
+                <div className="w-full px-8">
                   <table className="w-full min-w-[400px]">
                     <thead>
                       <tr className="border-b-2 border-[#1f2937] text-xs font-bold text-[#6b7280] uppercase tracking-wider">
@@ -254,7 +371,7 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                 </div>
 
                 {/* Total */}
-                <div className="px-8 py-4 bg-[#f9fafb] border-t border-b border-[#e5e7eb] flex justify-end items-center gap-4 mt-8">
+                <div className="px-8 py-4 flex justify-end items-center gap-4 mt-8">
                   <span className="text-sm font-bold text-[#6b7280] uppercase tracking-wider">Total Quantity:</span>
                   <span className="text-2xl font-black text-[#111827]">{booking.qty} <span className="text-lg font-bold text-[#6b7280] ml-1">{item.unit || 'BOX'}</span></span>
                 </div>
@@ -290,58 +407,90 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
               </div>
             </div>
 
-            <div className="pl-5 pr-6 py-6 flex flex-col sm:flex-row justify-end gap-3 mt-2">
+            <div className="px-6 pb-8 flex flex-col gap-4">
               <button
                 onClick={handleShareWhatsApp}
                 disabled={isSharing}
-                className="w-full sm:w-auto px-6 py-2.5 bg-[#25D366] text-white rounded-[8px] text-[15px] font-medium hover:bg-[#128C7E] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-[#25D366] text-white rounded-[8px] text-[15px] font-bold hover:bg-[#128C7E] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm uppercase tracking-wide"
               >
                 {isSharing ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Preparing...
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Preparing...</span>
                   </>
                 ) : (
                   <>
-                    <MessageCircle className="w-[20px] h-[20px]" />
-                    WhatsApp
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Share on WhatsApp</span>
                   </>
                 )}
               </button>
-              <button
-                onClick={handleExportPDF}
-                disabled={isExporting}
-                className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isExporting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    PDF
-                  </>
-                )}
-              </button>
-              <div className="flex w-full sm:w-auto gap-2">
-                <select
-                  value={printSize}
-                  onChange={(e) => setPrintSize(e.target.value as any)}
-                  className="px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[14px] font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="full">Full Page</option>
-                  <option value="half">Half (1/2)</option>
-                  <option value="quarter">Quarter (1/4)</option>
-                </select>
+
+              <div className="flex flex-col sm:flex-row justify-end items-center gap-3">
                 <button
-                  onClick={() => handlePrint()}
-                  className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2962d9] text-white rounded-[8px] text-[15px] font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  onClick={handleExportPDF}
+                  disabled={isExporting}
+                  className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[15px] font-medium hover:bg-gray-50 dark:bg-gray-900/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Printer className="w-4 h-4" />
-                  Print
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      PDF
+                    </>
+                  )}
                 </button>
+                <div className="flex w-full sm:w-auto gap-2">
+                  <select
+                    value={printSize}
+                    onChange={(e) => {
+                      setPrintSize(e.target.value as any);
+                      setSelectedQuadrant(0);
+                    }}
+                    className="px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[14px] font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
+                  >
+                    <option value="full">Full Page</option>
+                    <option value="half">Half (1/2)</option>
+                    <option value="quarter">Quarter (1/4)</option>
+                  </select>
+
+                  {printSize === 'half' && (
+                    <select
+                      value={selectedQuadrant}
+                      onChange={(e) => setSelectedQuadrant(Number(e.target.value))}
+                      className="px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[14px] font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
+                    >
+                      <option value={0}>Both Halves</option>
+                      <option value={1}>1st Half</option>
+                      <option value={2}>2nd Half</option>
+                    </select>
+                  )}
+
+                  {printSize === 'quarter' && (
+                    <select
+                      value={selectedQuadrant}
+                      onChange={(e) => setSelectedQuadrant(Number(e.target.value))}
+                      className="px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-[8px] text-[14px] font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
+                    >
+                      <option value={0}>All 4</option>
+                      <option value={1}>1st Quadrant</option>
+                      <option value={2}>2nd Quadrant</option>
+                      <option value={3}>3rd Quadrant</option>
+                      <option value={4}>4th Quadrant</option>
+                    </select>
+                  )}
+                  <button
+                    onClick={() => handlePrint()}
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2962d9] text-white rounded-[8px] text-[15px] font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

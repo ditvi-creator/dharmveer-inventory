@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Mic, MicOff, Send, X, MessageSquare, Loader2, Sparkles, Volume2, VolumeX, Key } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import { StockItem } from '../types';
 import { toast } from 'sonner';
 
@@ -114,80 +113,21 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
     setLoading(true);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('Gemini API key is missing from environment. Please set GEMINI_API_KEY in Secrets.');
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      
-      const functionDeclarations: FunctionDeclaration[] = [
-        {
-          name: "get_stock_balance",
-          description: "Get the current balance and size of a specific stock item. Use this when the user asks 'what is the balance of X' or 'how many of X is left'.",
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              item_name: { type: Type.STRING, description: "The name of the item to check" }
-            },
-            required: ["item_name"]
-          }
-        },
-        {
-          name: "get_item_bookings",
-          description: "Get details of parties who have booked a particular item and the quantities they booked. Use this when the user asks 'who booked X' or 'party name for X'.",
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              item_name: { type: Type.STRING, description: "The name of the item to check bookings for" }
-            },
-            required: ["item_name"]
-          }
-        },
-        {
-          name: "open_ui_component",
-          description: "Open a specific part of the application UI like the add item box, settings, or analytics page.",
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              component: { 
-                type: Type.STRING, 
-                enum: ["add_item", "settings", "analytics", "dashboard", "profile"],
-                description: "The UI component or page to open" 
-              }
-            },
-            required: ["component"]
-          }
-        },
-        {
-          name: "set_theme",
-          description: "Change the application theme to dark or light mode.",
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              mode: { type: Type.STRING, enum: ["dark", "light"], description: "The theme mode to set" }
-            },
-            required: ["mode"]
-          }
-        }
-      ];
-
-      // Important: Gemini conversation must start with a 'user' role.
-      // We skip the initial model greeting message in the history.
       const history = messages
         .filter((m, i) => i > 0 || m.role === 'user')
         .map(m => ({
           role: m.role,
-          parts: [{ text: m.content }]
+          content: m.content
         }));
 
-      const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-          ...history,
-          { role: 'user', parts: [{ text }] }
-        ],
-        config: {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: text,
+          history,
           systemInstruction: `You are an AI Inventory Assistant for a business management app. 
           You help users manage stock, check bookings, and navigate the app UI.
           
@@ -210,13 +150,70 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
           - Be professional, warm, and helpful.
           - Keep answers concise for a chat interface.`,
           tools: [
-            { functionDeclarations }
+            { 
+              functionDeclarations: [
+                {
+                  name: "get_stock_balance",
+                  description: "Get the current balance and size of a specific stock item. Use this when the user asks 'what is the balance of X' or 'how many of X is left'.",
+                  parameters: {
+                    type: "OBJECT",
+                    properties: {
+                      item_name: { type: "STRING", description: "The name of the item to check" }
+                    },
+                    required: ["item_name"]
+                  }
+                },
+                {
+                  name: "get_item_bookings",
+                  description: "Get details of parties who have booked a particular item and the quantities they booked. Use this when the user asks 'who booked X' or 'party name for X'.",
+                  parameters: {
+                    type: "OBJECT",
+                    properties: {
+                      item_name: { type: "STRING", description: "The name of the item to check bookings for" }
+                    },
+                    required: ["item_name"]
+                  }
+                },
+                {
+                  name: "open_ui_component",
+                  description: "Open a specific part of the application UI like the add item box, settings, or analytics page.",
+                  parameters: {
+                    type: "OBJECT",
+                    properties: {
+                      component: { 
+                        type: "STRING", 
+                        enum: ["add_item", "settings", "analytics", "dashboard", "profile"],
+                        description: "The UI component or page to open" 
+                      }
+                    },
+                    required: ["component"]
+                  }
+                },
+                {
+                  name: "set_theme",
+                  description: "Change the application theme to dark or light mode.",
+                  parameters: {
+                    type: "OBJECT",
+                    properties: {
+                      mode: { type: "STRING", enum: ["dark", "light"], description: "The theme mode to set" }
+                    },
+                    required: ["mode"]
+                  }
+                }
+              ]
+            }
           ]
-        }
+        }),
       });
-      
-      let finalContent = result.text || "";
-      const calls = result.functionCalls;
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get response from AI assistant');
+      }
+
+      const data = await response.json();
+      let finalContent = data.text || "";
+      const calls = data.functionCalls;
 
       if (calls) {
         for (const call of calls) {
