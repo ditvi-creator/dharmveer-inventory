@@ -93,62 +93,64 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Settings Navigation */}
-        <div className="md:col-span-1 space-y-1">
-          <button 
-            onClick={() => setActiveTab('general')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
-              activeTab === 'general' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
-            }`}
-          >
-            <SettingsIcon className="w-4 h-4" />
-            General
-          </button>
-          <button 
-            onClick={() => setActiveTab('notifications')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
-              activeTab === 'notifications' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
-            }`}
-          >
-            <Bell className="w-4 h-4" />
-            Notifications
-          </button>
-          <button 
-            onClick={() => setActiveTab('appearance')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
-              activeTab === 'appearance' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-            Appearance
-          </button>
-          <button 
-            onClick={() => setActiveTab('challan')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
-              activeTab === 'challan' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            Challan & Print
-          </button>
-          <button 
-            onClick={() => setActiveTab('data')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
-              activeTab === 'data' 
-                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
-                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            Data
-          </button>
+        <div className="md:col-span-1">
+          <div className="flex md:flex-col overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 gap-1 no-scrollbar sm:px-1">
+            <button 
+              onClick={() => setActiveTab('general')}
+              className={`flex items-center gap-3 whitespace-nowrap px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
+                activeTab === 'general' 
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
+              }`}
+            >
+              <SettingsIcon className="w-4 h-4" />
+              General
+            </button>
+            <button 
+              onClick={() => setActiveTab('notifications')}
+              className={`flex items-center gap-3 whitespace-nowrap px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
+                activeTab === 'notifications' 
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
+              }`}
+            >
+              <Bell className="w-4 h-4" />
+              Notifications
+            </button>
+            <button 
+              onClick={() => setActiveTab('appearance')}
+              className={`flex items-center gap-3 whitespace-nowrap px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
+                activeTab === 'appearance' 
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              Appearance
+            </button>
+            <button 
+              onClick={() => setActiveTab('challan')}
+              className={`flex items-center gap-3 whitespace-nowrap px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
+                activeTab === 'challan' 
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Challan
+            </button>
+            <button 
+              onClick={() => setActiveTab('data')}
+              className={`flex items-center gap-3 whitespace-nowrap px-4 py-3 rounded-xl font-medium text-sm transition-all shadow-sm border ${
+                activeTab === 'data' 
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 border-transparent shadow-none'
+              }`}
+            >
+              <Database className="w-4 h-4" />
+              Data
+            </button>
+          </div>
         </div>
 
         {/* Settings Content */}

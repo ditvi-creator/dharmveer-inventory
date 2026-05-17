@@ -93,102 +93,88 @@ export const Analytics: React.FC<AnalyticsProps> = ({ items }) => {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Current Balance</h3>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{data[data.length - 1].balance}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{data[data.length - 1].balance}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Total Stock In</h3>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
                 {data.reduce((sum, d) => sum + d.in, 0)}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm sm:col-span-2 lg:col-span-1">
               <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Total Stock Out</h3>
-              <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+              <p className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400">
                 {data.reduce((sum, d) => sum + d.out, 0)}
               </p>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 font-sans">Stock Balance Over Time</h3>
-            <div className="h-[400px] w-full">
+            <div className="h-[300px] sm:h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis 
                     dataKey="date" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tick={{ fill: '#6b7280', fontSize: 10 }}
                     dy={10}
+                    minTickGap={30}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tick={{ fill: '#6b7280', fontSize: 10 }}
                   />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
                   />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
                   <Line 
                     type="stepAfter" 
                     dataKey="balance" 
                     name="Stock Balance"
                     stroke="#2563eb" 
                     strokeWidth={3}
-                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="in" 
-                    name="Stock In"
-                    stroke="#16a34a" 
-                    strokeWidth={2}
-                    dot={{ fill: '#16a34a', r: 3 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="out" 
-                    name="Stock Out"
-                    stroke="#f97316" 
-                    strokeWidth={2}
-                    dot={{ fill: '#f97316', r: 3 }}
+                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 3 }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 font-sans">Stock Movements Detail</h3>
-            <div className="h-[300px] w-full">
+            <div className="h-[250px] sm:h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.filter(d => d.timestamp > 0)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <BarChart data={data.filter(d => d.timestamp > 0)} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis 
                     dataKey="date" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tick={{ fill: '#6b7280', fontSize: 10 }}
                     dy={10}
+                    minTickGap={30}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tick={{ fill: '#6b7280', fontSize: 10 }}
                   />
                   <Tooltip 
                     cursor={{ fill: '#f9fafb' }}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
                   />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar dataKey="in" name="Stock In" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  <Bar dataKey="out" name="Stock Out" fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
+                  <Bar dataKey="in" name="Stock In" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                  <Bar dataKey="out" name="Stock Out" fill="#f97316" radius={[4, 4, 0, 0]} maxBarSize={30} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

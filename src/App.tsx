@@ -135,7 +135,7 @@ function LandingPage({ onSignIn, appName }: { onSignIn: () => void, appName: str
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-[4rem] md:text-[5rem] font-extrabold text-gray-900 dark:text-white leading-[1.05] mb-6 tracking-tighter"
+          className="text-4xl xs:text-5xl sm:text-6xl md:text-[5rem] font-extrabold text-gray-900 dark:text-white leading-[1.05] mb-6 tracking-tighter"
         >
           Manage your stock<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -1288,7 +1288,7 @@ export default function App() {
           {/* Removed float logout */}
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
             <StatsCard 
               icon={<Boxes className="text-blue-500 w-5 h-5" />} 
               bg="bg-blue-100 dark:bg-blue-900/40"
@@ -1322,8 +1322,8 @@ export default function App() {
           {/* Filters & Search */}
           <div className="space-y-6 mb-8 flex flex-col">
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1 max-w-xl">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-400" />
                   <input 
                     ref={searchInputRef}
@@ -1335,40 +1335,43 @@ export default function App() {
                   />
                 </div>
                 
-                <button
-                  onClick={handleMicClick}
-                  className={`flex items-center justify-center p-4 rounded-xl border transition-all ${
-                    isListening
-                      ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-500 animate-pulse'
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 hover:text-gray-600 dark:text-gray-300'
-                  }`}
-                  title={isListening ? "Stop listening" : "Search by voice"}
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <button
+                    onClick={handleMicClick}
+                    className={`flex-1 sm:flex-none flex items-center justify-center p-4 rounded-xl border transition-all ${
+                      isListening
+                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-500 animate-pulse'
+                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/50 hover:text-gray-600 dark:text-gray-300'
+                    }`}
+                    title={isListening ? "Stop listening" : "Search by voice"}
+                  >
+                    <Mic className="w-5 h-5" />
+                    <span className="sm:hidden ml-2 font-medium">Voice</span>
+                  </button>
 
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-6 py-4 rounded-xl border text-sm font-medium transition-all ${
-                    showFilters 
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400' 
-                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900/50 hover:border-gray-300 dark:border-gray-600'
-                  }`}
-                >
-                  <Filter className="w-4 h-4" />
-                  Filters
-                  {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold ml-1">
-                      {
-                        (statusFilter !== 'all' ? 1 : 0) +
-                        (bookingFilter !== 'all-bookings' ? 1 : 0) +
-                        (partyFilter !== 'all' ? 1 : 0) +
-                        (categoryFilter !== 'all' ? 1 : 0) +
-                        (dateFilterStart || dateFilterEnd ? 1 : 0)
-                      }
-                    </span>
-                  )}
-                </button>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-2 px-6 py-4 rounded-xl border text-sm font-medium transition-all ${
+                      showFilters 
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400' 
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:bg-gray-900/50 hover:border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    <Filter className="w-4 h-4" />
+                    Filters
+                    {(statusFilter !== 'all' || bookingFilter !== 'all-bookings' || partyFilter !== 'all' || categoryFilter !== 'all' || dateFilterStart || dateFilterEnd) && (
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold ml-1">
+                        {
+                          (statusFilter !== 'all' ? 1 : 0) +
+                          (bookingFilter !== 'all-bookings' ? 1 : 0) +
+                          (partyFilter !== 'all' ? 1 : 0) +
+                          (categoryFilter !== 'all' ? 1 : 0) +
+                          (dateFilterStart || dateFilterEnd ? 1 : 0)
+                        }
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
               
               <AnimatePresence>

@@ -84,32 +84,34 @@ export const Layout: React.FC<LayoutProps> = ({
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {currentPage === 'dashboard' && (
-                <div className="flex flex-wrap items-center gap-2 border-r-0 border-b sm:border-b-0 sm:border-r border-gray-200 pb-3 sm:pb-0 sm:pr-4 sm:mr-2 w-full sm:w-auto">
-                  <HeaderButton icon={<FileDown className="w-4 h-4" />} label="Download Template" onClick={onDownloadTemplate} />
-                  <div className="relative">
-                    <input 
-                      type="file" 
-                      accept=".csv" 
-                      onChange={onImportCSV}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      title="Import CSV"
-                      aria-label="Import CSV"
-                    />
-                    <HeaderButton icon={<FileUp className="w-4 h-4" />} label="Import" onClick={() => {}} />
+                <div className="flex flex-wrap items-center gap-2 border-r-0 sm:border-r border-gray-200 dark:border-gray-800 sm:pr-4 sm:mr-2 w-full sm:w-auto">
+                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto">
+                    <HeaderButton icon={<FileDown className="w-4 h-4" />} label="Template" onClick={onDownloadTemplate} />
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        accept=".csv" 
+                        onChange={onImportCSV}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        title="Import CSV"
+                        aria-label="Import CSV"
+                      />
+                      <HeaderButton icon={<FileUp className="w-4 h-4" />} label="Import" onClick={() => {}} />
+                    </div>
+                    <HeaderButton icon={<FileDown className="w-4 h-4" />} label="Export" onClick={onExportCSV} />
                   </div>
-                  <HeaderButton icon={<FileDown className="w-4 h-4" />} label="Export" onClick={onExportCSV} />
                 </div>
               )}
 
               {currentPage === 'dashboard' && (
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                   <button 
                     onClick={onAddItem}
                     title="Shortcut: Ctrl+I"
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Item
+                    <span>Add Item</span>
                   </button>
 
                   <button 
@@ -117,7 +119,7 @@ export const Layout: React.FC<LayoutProps> = ({
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Clear
+                    <span>Clear</span>
                   </button>
                 </div>
               )}

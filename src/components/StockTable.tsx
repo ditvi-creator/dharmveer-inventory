@@ -64,9 +64,11 @@ export const StockTable: React.FC<StockTableProps> = ({
   
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
-      <div className="overflow-x-auto custom-scrollbar">
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
+            {/* ... table head ... */}
             <tr className="border-b border-gray-200 dark:border-gray-700">
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-12 border-r border-gray-100 dark:border-gray-800 italic">#</th>
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Item Name</th>
@@ -292,6 +294,134 @@ export const StockTable: React.FC<StockTableProps> = ({
             </AnimatePresence>
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
+        <AnimatePresence>
+          {items.length === 0 ? (
+            <div className="px-4 py-16 text-center text-gray-400 dark:text-gray-400 text-sm italic">
+              No records found. Click "Add Item" to begin.
+            </div>
+          ) : (
+            items.map((item, index) => {
+              const isLowStock = item.balance <= item.reorderLevel;
+
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className={`p-4 ${isLowStock ? 'bg-red-50 dark:bg-red-900/30' : ''}`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 italic">#{index + 1}</span>
+                        <span className="font-bold text-lg text-gray-900 dark:text-white leading-tight">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300 font-medium">{item.size}</span>
+                        <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300 font-medium uppercase">{item.unit || 'BOX'}</span>
+                        {item.category && <span className="text-xs text-gray-500">{item.category}</span>}
+                      </div>
+                    </div>
+                    
+                    <div className={`flex flex-col items-center justify-center ${
+                        isLowStock 
+                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' 
+                        : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800'
+                      } border rounded-lg px-3 py-1`}
+                    >
+                      <span className="text-sm font-black">{item.balance}</span>
+                      <span className="text-[8px] uppercase font-bold tracking-wider">Balance</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
+                      <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider block mb-1">Stock Movements</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1">
+                          <MovementInput 
+                            currentTotal={item.stockIn || 0} 
+                            onAdd={(val) => onUpdateItem(item.id, { stockIn: (item.stockIn || 0) + val })} 
+                          />
+                          <span className="text-[10px] text-center block text-green-600 font-bold">IN</span>
+                        </div>
+                        <div className="flex-1">
+                          <MovementInput 
+                            currentTotal={item.stockOut || 0} 
+                            onAdd={(val) => onUpdateItem(item.id, { stockOut: (item.stockOut || 0) + val })} 
+                          />
+                          <span className="text-[10px] text-center block text-orange-600 font-bold">OUT</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700 flex flex-col justify-center items-center">
+                       <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider block mb-1">Threshold</span>
+                       <div className="flex items-center gap-3">
+                          <div className="text-center">
+                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 block">{item.reorderLevel}</span>
+                            <span className="text-[8px] text-gray-400 uppercase">Min</span>
+                          </div>
+                          <div className="text-center">
+                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 block">{item.booked || 0}</span>
+                            <span className="text-[8px] text-gray-400 uppercase">Book</span>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+
+                  {item.bookings && item.bookings.length > 0 ? (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Bookings ({item.bookings.length})</span>
+                        <button onClick={() => onOpenBookings(item)} className="text-[10px] text-blue-600 font-bold">Manage</button>
+                      </div>
+                      <div className="space-y-2 overflow-x-auto flex flex-nowrap pb-2 gap-3 scrollbar-none">
+                        {item.bookings.map((booking) => (
+                          <div key={booking.id} className="bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 p-2 rounded-lg min-w-[140px] flex-shrink-0">
+                            <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 truncate">{booking.partyName}</p>
+                            <p className="text-[10px] text-blue-600 font-bold mt-1">Qty: {booking.qty}</p>
+                            <button 
+                              onClick={() => onOpenChallan(item, booking)}
+                              className="mt-2 w-full py-1 bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-900 text-[10px] text-blue-600 font-bold rounded flex items-center justify-center gap-1"
+                            >
+                              <Printer className="w-3 h-3" /> Challan
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between mb-4 bg-gray-50 dark:bg-gray-800/30 p-2 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                      <span className="text-[10px] text-gray-400 italic">No active bookings</span>
+                      <button onClick={() => onOpenBookings(item)} className="p-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
+                    <button onClick={() => onOpenHistory(item)} className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                      <History className="w-3.5 h-3.5" /> History
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => onEditItem(item)} className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-gray-400 hover:text-blue-600 transition-colors">
+                        <PenLine className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button onClick={() => onDeleteItem(item.id)} className="flex items-center gap-1.5 text-[11px] font-bold text-red-400 hover:text-red-500 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
