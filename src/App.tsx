@@ -1484,7 +1484,7 @@ export default function App() {
               </AnimatePresence>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 pr-10">
               <span className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mr-2">Sort by:</span>
               <SortPill active={sortBy === 'default'} onClick={() => setSortBy('default')}>Default</SortPill>
               <SortPill active={sortBy === 'name-asc'} onClick={() => setSortBy('name-asc')}>Name A&rarr;Z</SortPill>
@@ -1586,7 +1586,7 @@ const StatsCard = ({ icon, label, value, bg, delay }: any) => (
     <div className={`w-14 h-14 ${bg} rounded-2xl flex items-center justify-center`}>
       {icon}
     </div>
-    <div>
+    <div className="pr-10">
       <p className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-wider mb-1">{label}</p>
       <p className="text-3xl font-black text-gray-900 dark:text-white leading-none">{value}</p>
     </div>

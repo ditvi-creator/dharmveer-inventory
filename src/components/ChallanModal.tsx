@@ -167,8 +167,9 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
         }
       }
     } else if (printSize === 'quarter' && selectedQuadrant > 0) {
+      const activeQuadrants = selectedQuadrant === 5 ? [1, 2] : selectedQuadrant === 6 ? [3, 4] : [selectedQuadrant];
       for (let i = 1; i <= 4; i++) {
-        if (i === selectedQuadrant) {
+        if (activeQuadrants.includes(i)) {
           copiesHtml += `<div class="challan-copy">${challanHtml}</div>`;
         } else {
           copiesHtml += `<div class="challan-copy" style="border: none; background: transparent;"></div>`;
@@ -481,6 +482,8 @@ export const ChallanModal: React.FC<ChallanModalProps> = ({ isOpen, onClose, boo
                       <option value={2}>2nd Quadrant</option>
                       <option value={3}>3rd Quadrant</option>
                       <option value={4}>4th Quadrant</option>
+                      <option value={5}>1st & 2nd Both</option>
+                      <option value={6}>3rd & 4th Both</option>
                     </select>
                   )}
                   <button
