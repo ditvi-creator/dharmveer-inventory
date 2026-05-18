@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -19,29 +19,40 @@ async function startServer() {
       
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server." });
+        return res.status(500).json({ 
+          error: "GEMINI_API_KEY is not configured on the server. If you are on Vercel, add it to your Project Settings > Environment Variables." 
+        });
       }
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash", 
-        systemInstruction 
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
       });
 
-      const chat = model.startChat({
-        history: history.map((m: any) => ({
-          role: m.role,
-          parts: [{ text: m.content || "" }]
-        })),
-        tools
-      });
+      // Prepare contents from history and current message
+      const contents = history.map((m: any) => ({
+        role: m.role || 'user',
+        parts: [{ text: m.content || "" }]
+      }));
+      contents.push({ role: 'user', parts: [{ text: message }] });
 
-      const result = await chat.sendMessage(message);
-      const response = await result.response;
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents,
+        config: {
+          systemInstruction,
+          tools,
+          temperature: 0.7,
+        }
+      });
       
       res.json({ 
-        text: response.text(),
-        functionCalls: result.response.functionCalls()
+        text: response.text,
+        functionCalls: response.functionCalls
       });
     } catch (error: any) {
       console.error("Gemini API Error:", error);

@@ -15,6 +15,11 @@ interface Message {
   role: 'user' | 'model';
   content: string;
   isAction?: boolean;
+  isError?: boolean;
+  errorAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export const AiChatbot: React.FC<AiChatbotProps> = ({ 
@@ -35,14 +40,10 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  // Check for API key on mount
+  // Check for API key on mount and when open
   useEffect(() => {
-    if (!process.env.GEMINI_API_KEY) {
-      toast.error('Gemini API key is not set. Please add it in Settings > Secrets.', {
-        duration: 5000,
-      });
-    }
-  }, []);
+    // No longer checking process.env.GEMINI_API_KEY here as it's a server-side secret
+  }, [isOpen]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -272,30 +273,40 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
     } catch (error: any) {
       console.error('Chat error:', error);
       let errorMessage = "Sorry, I've encountered an error processing that request.";
-      let showKeyButton = false;
+      let actionLabel = "";
+      let actionFn: (() => void) | undefined = undefined;
       
       const errorStr = error.message || error.toString() || "";
       
-      if (errorStr.includes('API key')) {
-        errorMessage = 'AI error. Please check your Gemini API key in Secrets.';
-        showKeyButton = true;
+      if (errorStr.includes('MISSING_API_KEY') || errorStr.includes('API key')) {
+        errorMessage = 'Your Gemini API key is missing. Please connect your API key to use AI features.';
+        actionLabel = "Setup API Key";
+        actionFn = () => (window as any).aistudio?.openSelectKey();
       } else if (errorStr.includes('PERMISSION_DENIED') || errorStr.includes('403')) {
-        errorMessage = 'Permission denied. Please ensure your Gemini API key is valid and has billing enabled if required.';
-        showKeyButton = true;
+        errorMessage = 'Permission denied. Your API key might be invalid or restricted.';
+        actionLabel = "Check Key";
+        actionFn = () => (window as any).aistudio?.openSelectKey();
       } else if (errorStr.includes('RESOURCE_EXHAUSTED') || errorStr.includes('429')) {
-        errorMessage = 'API quota exhausted. You can connect your own paid API key for higher limits using the key icon at the top.';
-        showKeyButton = true;
+        errorMessage = 'API quota reached. You can add your own paid API key for higher limits.';
+        actionLabel = "Add Custom Key";
+        actionFn = () => (window as any).aistudio?.openSelectKey();
       } else if (errorStr.includes('NOT_FOUND') || errorStr.includes('404')) {
-        errorMessage = 'Model not found. Please check your Gemini API configuration.';
+        errorMessage = 'AI service model not found. Please check your configuration.';
       }
 
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        content: errorMessage,
+        isError: true,
+        errorAction: actionLabel && actionFn ? { label: actionLabel, onClick: actionFn } : undefined
+      }]);
+
       toast.error(errorMessage, {
-        action: showKeyButton ? {
-          label: 'Setup Key',
-          onClick: () => (window as any).aistudio?.openSelectKey()
+        action: actionLabel && actionFn ? {
+          label: actionLabel,
+          onClick: actionFn
         } : undefined
       });
-      setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
     } finally {
       setLoading(false);
     }
@@ -392,12 +403,22 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm font-medium ${
+                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm font-medium flex flex-col gap-2 ${
                     msg.role === 'user' 
                       ? 'bg-blue-600 text-white rounded-tr-none' 
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-none border border-gray-100 dark:border-gray-700'
+                      : msg.isError
+                        ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900/50 rounded-tl-none'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-none border border-gray-100 dark:border-gray-700'
                   }`}>
                     {msg.content}
+                    {msg.errorAction && (
+                      <button
+                        onClick={msg.errorAction.onClick}
+                        className="mt-1 px-3 py-1.5 bg-red-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-red-700 transition-colors self-start"
+                      >
+                        {msg.errorAction.label}
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}
