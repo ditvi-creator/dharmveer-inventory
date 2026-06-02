@@ -41,9 +41,11 @@ export interface StockItem {
   balance: number;
   reorderLevel: number;
   booked: number;
+  imageUrl?: string;
   partyName: string;
   updatedAt: any;
   ownerId?: string;
+  isSubscribed?: boolean;
   bookings?: Booking[];
   movements?: StockMovement[];
 }

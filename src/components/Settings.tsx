@@ -195,7 +195,23 @@ export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], s
                     </select>
                   </div>
 
-                  
+                  {/* Setting Item */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Product Images</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Show a column for product images in the stock table.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={localSettings.showProductImages} 
+                        onChange={(e) => setLocalSettings({...localSettings, showProductImages: e.target.checked})} 
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:bg-gray-800 after:border-gray-300 dark:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
                   <div className="flex flex-col gap-4 py-4 border-b border-gray-50 dark:border-gray-800/50">
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white">Godowns (Opening Stock Columns)</h4>

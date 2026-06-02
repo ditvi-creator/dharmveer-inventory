@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { History, Plus, FileText, Bell, PenLine, Trash2, Printer, AlertTriangle } from 'lucide-react';
+import { History, Plus, FileText, Bell, PenLine, Trash2, Printer, AlertTriangle, ImageIcon, X } from 'lucide-react';
 import { StockItem, Godown } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { useSettingsContext } from '../SettingsContext';
 
 interface StockTableProps {
   items: StockItem[];
@@ -61,9 +62,46 @@ export const StockTable: React.FC<StockTableProps> = ({
   onOpenChallan
 }) => {
   const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}];
+  const { settings } = useSettingsContext();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+      <AnimatePresence>
+        {previewImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+            onClick={() => setPreviewImage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setPreviewImage(null)}
+                className="absolute -top-12 right-0 md:-right-12 p-2 text-white hover:bg-white/10 rounded-full transition-all group"
+                title="Close preview"
+              >
+                <X className="w-8 h-8 group-hover:scale-110 transition-transform" />
+              </button>
+              <div className="bg-white dark:bg-gray-900 p-1.5 rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+                <img 
+                  src={previewImage} 
+                  alt="Product Preview" 
+                  className="max-w-full max-h-[80vh] object-contain rounded-xl"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
@@ -71,6 +109,9 @@ export const StockTable: React.FC<StockTableProps> = ({
             {/* ... table head ... */}
             <tr className="border-b border-gray-200 dark:border-gray-700">
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-12 border-r border-gray-100 dark:border-gray-800 italic">#</th>
+              {settings.showProductImages && (
+                <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800 w-20">Image</th>
+              )}
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Item Name</th>
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Size</th>
               <th rowSpan={2} className="px-4 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Unit</th>
@@ -93,7 +134,7 @@ export const StockTable: React.FC<StockTableProps> = ({
             <AnimatePresence>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={11 + activeGodowns.length} className="px-4 py-16 text-center text-gray-400 dark:text-gray-400 text-sm italic">
+                  <td colSpan={11 + activeGodowns.length + (settings.showProductImages ? 1 : 0)} className="px-4 py-16 text-center text-gray-400 dark:text-gray-400 text-sm italic">
                     No records found. Click "Add Item" to begin.
                   </td>
                 </tr>
@@ -116,6 +157,21 @@ export const StockTable: React.FC<StockTableProps> = ({
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-50 dark:bg-red-900/20"></div>
                         )}
                       </td>
+                      {settings.showProductImages && (
+                        <td className="px-2 py-2 border-r border-gray-50 dark:border-gray-800/50 text-center align-middle">
+                          <button 
+                            onClick={() => item.imageUrl && setPreviewImage(item.imageUrl)}
+                            className={`w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 transition-all ${item.imageUrl ? 'hover:scale-105 hover:shadow-md cursor-zoom-in active:scale-95' : 'cursor-default'}`}
+                            disabled={!item.imageUrl}
+                          >
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon className="w-6 h-6 text-gray-300 dark:text-gray-600" />
+                            )}
+                          </button>
+                        </td>
+                      )}
                       <td className="px-4 py-4 border-r border-gray-50 dark:border-gray-800/50">
                         <div className="flex flex-col">
                           <span className="font-bold text-lg text-gray-900 dark:text-white">{item.name}</span>
@@ -316,19 +372,34 @@ export const StockTable: React.FC<StockTableProps> = ({
                   className={`p-4 ${isLowStock ? 'bg-red-50 dark:bg-red-900/30' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 italic">#{index + 1}</span>
-                        <span className="font-bold text-lg text-gray-900 dark:text-white leading-tight">{item.name}</span>
-                      </div>
+                    <div className="flex items-start gap-3">
+                      {settings.showProductImages && (
+                        <button 
+                          onClick={() => item.imageUrl && setPreviewImage(item.imageUrl)}
+                          className={`w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 flex-shrink-0 transition-transform ${item.imageUrl ? 'active:scale-95 cursor-zoom-in' : 'cursor-default'}`}
+                          disabled={!item.imageUrl}
+                        >
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-gray-300 dark:text-gray-600" />
+                          )}
+                        </button>
+                      )}
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400 italic">#{index + 1}</span>
+                          <span className="font-bold text-lg text-gray-900 dark:text-white leading-tight">{item.name}</span>
+                        </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300 font-medium">{item.size}</span>
                         <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300 font-medium uppercase">{item.unit || 'BOX'}</span>
                         {item.category && <span className="text-xs text-gray-500">{item.category}</span>}
                       </div>
                     </div>
-                    
-                    <div className={`flex flex-col items-center justify-center ${
+                  </div>
+                  
+                  <div className={`flex flex-col items-center justify-center ${
                         isLowStock 
                         ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' 
                         : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800'

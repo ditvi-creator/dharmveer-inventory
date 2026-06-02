@@ -33,6 +33,8 @@
         "phoneNumber": { "type": "string" },
         "companyName": { "type": "string" },
         "businessAddress": { "type": "string" },
+        "isSubscribed": { "type": "boolean" },
+        "trialStartedAt": { "type": "any" },
         "updatedAt": { "type": "number" }
       },
       "required": ["fullName", "updatedAt"]

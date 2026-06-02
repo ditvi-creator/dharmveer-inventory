@@ -20,11 +20,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import Papa from 'papaparse';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { AiChatbot } from './components/AiChatbot';
+import { Pricing } from './components/Pricing';
 
 enum OperationType {
   CREATE = 'create',
@@ -73,7 +74,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-function LandingPage({ onSignIn, appName }: { onSignIn: () => void, appName: string }) {
+function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, onPricing: () => void, appName: string }) {
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-gray-950 font-sans overflow-hidden relative">
       {/* Decorative background elements */}
@@ -107,17 +108,29 @@ function LandingPage({ onSignIn, appName }: { onSignIn: () => void, appName: str
           </div>
           <span className="font-bold text-[17px] text-gray-900 dark:text-white tracking-tight">{appName}</span>
         </motion.div>
-        <motion.button 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onSignIn} 
-          className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:bg-gray-900/50 transition-colors shadow-sm"
-        >
-          Sign In
-        </motion.button>
+        
+        <div className="flex items-center gap-6">
+          <motion.button
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            onClick={onPricing}
+            className="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            Pricing
+          </motion.button>
+          <motion.button 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onSignIn} 
+            className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:bg-gray-900/50 transition-colors shadow-sm"
+          >
+            Sign In
+          </motion.button>
+        </div>
       </nav>
 
       <main className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-20 flex flex-col items-center text-center">
@@ -161,10 +174,10 @@ function LandingPage({ onSignIn, appName }: { onSignIn: () => void, appName: str
           <motion.button 
             whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.4)" }}
             whileTap={{ scale: 0.95 }}
-            onClick={onSignIn} 
+            onClick={onPricing} 
             className="w-full sm:w-auto px-8 py-3.5 text-[16px] font-medium text-white bg-[#2563eb] rounded-xl hover:bg-blue-700 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]"
           >
-            Get Started Free
+            Try Free for 3 Days
           </motion.button>
           <motion.button 
             whileHover={{ scale: 1.05 }}
@@ -228,6 +241,10 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [trialStartedAt, setTrialStartedAt] = useState<number | null>(null);
+  const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
@@ -479,12 +496,107 @@ export default function App() {
       setAuthLoading(false);
       if (currentUser) {
         fetchStock(currentUser.uid);
+        fetchUserSubscription(currentUser.uid);
       } else {
         setItems([]);
+        setIsSubscribed(null);
       }
     });
     return () => unsubscribe();
   }, []);
+
+  const fetchUserSubscription = async (uid: string) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setIsSubscribed(!!userData.isSubscribed);
+        
+        if (userData.trialStartedAt) {
+          const startTime = typeof userData.trialStartedAt === 'number' 
+            ? userData.trialStartedAt 
+            : userData.trialStartedAt.toMillis();
+          setTrialStartedAt(startTime);
+          
+          const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+          if (Date.now() - startTime > threeDaysInMs) {
+            setIsTrialExpired(true);
+          }
+        }
+      } else {
+        // New user or no profile, set as not subscribed by default
+        setIsSubscribed(false);
+      }
+    } catch (err) {
+      console.error("Error fetching subscription status", err);
+      // For safety in this tool, I'll default to true if it fails or just false. 
+      // User requested "only subscribed user can use". I'll set false if check fails.
+      setIsSubscribed(false);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      setShowLogin(true);
+      setShowPricing(false);
+      setAuthMode('signup');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, { 
+        isSubscribed: true,
+        fullName: user.displayName || user.email?.split('@')[0] || 'Member',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      setIsSubscribed(true);
+      setIsTrialExpired(false);
+      setShowPricing(false);
+      toast.success("Successfully subscribed! You now have full access.");
+    } catch (err) {
+      toast.error("Subscription failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartTrial = async () => {
+    if (!user) {
+      setShowLogin(true);
+      setShowPricing(false);
+      setAuthMode('signup');
+      return;
+    }
+
+    if (trialStartedAt) {
+      toast.error("You have already used your trial.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, { 
+        trialStartedAt: serverTimestamp(),
+        fullName: user.displayName || user.email?.split('@')[0] || 'Member',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      setTrialStartedAt(Date.now());
+      setIsTrialExpired(false);
+      setShowPricing(false);
+      toast.success("Trial started! You have 3 days of full access.");
+    } catch (err) {
+      toast.error("Failed to start trial. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -970,12 +1082,38 @@ export default function App() {
   }
 
   if (!user) {
+    if (showPricing) {
+      return (
+        <Pricing 
+          onBack={() => setShowPricing(false)} 
+          onSubscribe={() => { setShowPricing(false); setShowLogin(true); setAuthMode('signup'); }}
+          onStartTrial={() => { setShowPricing(false); setShowLogin(true); setAuthMode('signup'); }}
+          isLoggedIn={false}
+          isTrialUsed={false}
+        />
+      );
+    }
+    
     if (!showLogin) {
-      return <LandingPage onSignIn={() => setShowLogin(true)} appName={settings.companyName} />;
+      return (
+        <LandingPage 
+          onSignIn={() => setShowLogin(true)} 
+          onPricing={() => setShowPricing(true)}
+          appName={settings.companyName} 
+        />
+      );
     }
 
     return (
       <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col items-center justify-center p-4">
+        <div className="absolute top-4 left-4">
+          <button 
+            onClick={() => setShowLogin(false)}
+            className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-1"
+          >
+            ← Back to Home
+          </button>
+        </div>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1190,6 +1328,19 @@ export default function App() {
         <Loader2 className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
         <p className="mt-4 text-xs font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest">Loading Catalog...</p>
       </div>
+    );
+  }
+
+  // Render Dashboard or Pricing (Subscription Gate)
+  if (user && isSubscribed === false && (!trialStartedAt || isTrialExpired)) {
+    return (
+      <Pricing 
+        onBack={logout} 
+        onSubscribe={handleSubscribe}
+        onStartTrial={handleStartTrial}
+        isLoggedIn={true}
+        isTrialUsed={!!trialStartedAt}
+      />
     );
   }
 
@@ -1533,6 +1684,7 @@ export default function App() {
         onSave={handleSaveItem} 
         itemToEdit={itemToEdit}
         partyNames={allPartyNames}
+        showImageUpload={settings.showProductImages}
       />
 
       <DeleteConfirmationModal

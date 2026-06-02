@@ -45,6 +45,8 @@ service cloud.firestore {
       return data.keys().hasAll(['fullName', 'updatedAt']) &&
              data.fullName is string && data.fullName.size() <= 200 &&
              data.updatedAt is timestamp &&
+             (data.get('isSubscribed', false) is bool) &&
+             (data.get('trialStartedAt', request.time) is timestamp) &&
              (data.get('phoneNumber', '') is string) && (data.get('phoneNumber', '').size() <= 50) &&
              (data.get('companyName', '') is string) && (data.get('companyName', '').size() <= 200) &&
              (data.get('businessAddress', '') is string) && (data.get('businessAddress', '').size() <= 500);

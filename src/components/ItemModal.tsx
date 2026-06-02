@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, PackagePlus, Save } from 'lucide-react';
+import { X, PackagePlus, Save, Upload, ImageIcon, Trash2 } from 'lucide-react';
 import { Godown, StockItem } from '../types';
 
 interface ItemModalProps {
@@ -10,6 +10,7 @@ interface ItemModalProps {
   itemToEdit?: StockItem | null;
   partyNames?: string[];
   godowns?: Godown[];
+  showImageUpload?: boolean;
 }
 
 export const ItemModal: React.FC<ItemModalProps> = ({ 
@@ -18,7 +19,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   onSave, 
   itemToEdit, 
   partyNames = [], 
-  godowns = [] 
+  godowns = [],
+  showImageUpload = true
 }) => {
   const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}];
 
@@ -32,13 +34,16 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     godownStocks: {},
     reorderLevel: 0,
     partyName: '',
+    imageUrl: '',
   });
 
   const [formData, setFormData] = useState<any>(getDefaultFormData());
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setFormData(getDefaultFormData());
+      setImagePreview(null);
       return;
     }
 
@@ -53,11 +58,39 @@ export const ItemModal: React.FC<ItemModalProps> = ({
         godownStocks: itemToEdit.godownStocks || {},
         reorderLevel: itemToEdit.reorderLevel || 0,
         partyName: itemToEdit.partyName || '',
+        imageUrl: itemToEdit.imageUrl || '',
       });
+      setImagePreview(itemToEdit.imageUrl || null);
     } else {
       setFormData(getDefaultFormData());
+      setImagePreview(null);
     }
   }, [itemToEdit, isOpen]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        import('sonner').then(({ toast }) => {
+          toast.error("Image size must be under 2MB");
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setImagePreview(dataUrl);
+        setFormData({ ...formData, imageUrl: dataUrl });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setFormData({ ...formData, imageUrl: '' });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +137,56 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Image Upload Area */}
+                {showImageUpload && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 underline">Product Image</label>
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-24 h-24 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center overflow-hidden flex-shrink-0 group">
+                        {imagePreview ? (
+                          <>
+                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button 
+                                type="button" 
+                                onClick={removeImage}
+                                className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-gray-400 p-2">
+                            <ImageIcon className="w-8 h-8 mb-1" />
+                            <span className="text-[10px] text-center font-medium">No Image</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <label 
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors w-fit text-sm font-bold"
+                        >
+                          <Upload className="w-4 h-4" />
+                          {imagePreview ? "Change Image" : "Upload Image"}
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={handleImageChange} 
+                          />
+                        </label>
+                        <p className="text-[11px] text-gray-400 mt-2">
+                          Supported: JPG, PNG. Max 2MB.<br />
+                          Images will be displayed in a compact size.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="md:col-span-2">
                   <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Item Name</label>
                   <input

@@ -14,6 +14,7 @@ export interface AppSettings {
   challanPrintFooter: boolean;
   challanShowSignature: boolean;
   themeColor: string;
+  showProductImages: boolean;
 }
 
 export const defaultSettings: AppSettings = {
@@ -30,6 +31,7 @@ export const defaultSettings: AppSettings = {
   challanPrintFooter: true,
   challanShowSignature: true,
   themeColor: 'blue',
+  showProductImages: true,
 };
 
 interface SettingsContextType {
