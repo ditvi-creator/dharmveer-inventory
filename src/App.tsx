@@ -105,7 +105,12 @@ function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, o
           transition={{ duration: 0.5 }}
           className="flex items-center gap-2"
         >
-          <img src="/favicon.png" alt="Pro Inventory Logo" className="w-8 h-8 rounded-lg shadow-lg shadow-blue-500/20" />
+          <img 
+            src="/logo.png" 
+            alt="Pro Inventory" 
+            className="w-8 h-8 rounded-lg shadow-sm" 
+            referrerPolicy="no-referrer"
+          />
           <span className="font-bold text-[17px] text-gray-900 dark:text-white tracking-tight">{appName}</span>
         </motion.div>
         
@@ -1123,7 +1128,7 @@ export default function App() {
         <LandingPage 
           onSignIn={() => setShowLogin(true)} 
           onPricing={() => setShowPricing(true)}
-          appName={settings.companyName} 
+          appName="Pro Inventory" 
         />
       );
     }
@@ -1153,10 +1158,10 @@ export default function App() {
                 <PackageCheck className="w-6 h-6 text-white" />
               </div>
               <div className="text-[#1a56db] font-bold text-xs tracking-tight leading-none text-center">
-                stockflow
+                Pro
                 <div className="flex items-center justify-center mt-0.5">
                   <div className="h-[1px] w-1.5 bg-[#1a56db]"></div>
-                  <span className="text-[8px] font-bold text-[#1a56db] px-0.5 leading-none">manager</span>
+                  <span className="text-[8px] font-bold text-[#1a56db] px-0.5 leading-none">Inventory</span>
                   <div className="h-[1px] w-1.5 bg-[#1a56db]"></div>
                 </div>
               </div>
@@ -1263,7 +1268,7 @@ export default function App() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="text-center mb-8">
-                  <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-white mb-2 tracking-tight">Join StockFlow</h1>
+                  <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-white mb-2 tracking-tight">Join Pro Inventory</h1>
                   <p className="text-[#64748b] dark:text-gray-400 text-[15px]">Create your free account today</p>
                 </div>
 

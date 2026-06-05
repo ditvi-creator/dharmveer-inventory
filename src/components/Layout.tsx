@@ -40,9 +40,16 @@ export const Layout: React.FC<LayoutProps> = ({
           <div className="py-4 sm:h-18 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-10">
               <div className="flex items-center gap-4">
-                <img src="/favicon.png" alt="Pro Inventory" className="w-10 h-10 rounded-lg shadow-sm" />
+                <img 
+                  src="/logo.png" 
+                  alt="Pro Inventory" 
+                  className="w-8 h-8 rounded-lg shadow-sm" 
+                  referrerPolicy="no-referrer"
+                />
                 <div>
-                  <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">{settings.companyName}</h1>
+                  <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">
+                    {currentPage === 'dashboard' ? (settings.companyName || "Pro Inventory") : "Pro Inventory"}
+                  </h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">Track and manage your inventory</p>
                 </div>
               </div>
