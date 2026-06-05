@@ -40,9 +40,7 @@ export const Layout: React.FC<LayoutProps> = ({
           <div className="py-4 sm:h-18 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-10">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex shrink-0 items-center justify-center shadow-sm">
-                  <Package className="text-white w-6 h-6" />
-                </div>
+                <img src="/favicon.png" alt="Pro Inventory" className="w-10 h-10 rounded-lg shadow-sm" />
                 <div>
                   <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">{settings.companyName}</h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">Track and manage your inventory</p>

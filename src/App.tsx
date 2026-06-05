@@ -105,9 +105,7 @@ function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, o
           transition={{ duration: 0.5 }}
           className="flex items-center gap-2"
         >
-          <div className="bg-[#1a56db] rounded p-1.5 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <PackageCheck className="w-5 h-5 text-white" />
-          </div>
+          <img src="/favicon.png" alt="Pro Inventory Logo" className="w-8 h-8 rounded-lg shadow-lg shadow-blue-500/20" />
           <span className="font-bold text-[17px] text-gray-900 dark:text-white tracking-tight">{appName}</span>
         </motion.div>
         
