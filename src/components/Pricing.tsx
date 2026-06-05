@@ -88,7 +88,7 @@ export const Pricing: React.FC<PricingProps> = ({
                 PRO PLAN
               </span>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-5xl font-extrabold text-gray-900 dark:text-white mt-2">₹500</span>
+                <span className="text-5xl font-extrabold text-gray-900 dark:text-white mt-2">₹499</span>
                 <span className="text-gray-500 dark:text-gray-400 font-medium">/month</span>
               </div>
             </div>

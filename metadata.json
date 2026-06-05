@@ -1,5 +1,5 @@
 {
-  "name": "StockMaster Pro",
+  "name": "Pro Inventory",
   "description": "Professional stock management system featuring real-time inventory tracking, searchable data grids, and automated balance calculations.",
   "requestFramePermissions": [
     "microphone"

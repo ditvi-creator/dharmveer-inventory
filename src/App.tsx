@@ -26,6 +26,8 @@ import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { AiChatbot } from './components/AiChatbot';
 import { Pricing } from './components/Pricing';
+import { PaymentStatus } from './components/PaymentStatus';
+import axios from 'axios';
 
 enum OperationType {
   CREATE = 'create',
@@ -172,7 +174,9 @@ function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, o
           className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full mb-24"
         >
           <motion.button 
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.4)" }}
+            animate={{ rotate: [0, -1.5, 1.5, -1.5, 1.5, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.4)", rotate: 0 }}
             whileTap={{ scale: 0.95 }}
             onClick={onPricing} 
             className="w-full sm:w-auto px-8 py-3.5 text-[16px] font-medium text-white bg-[#2563eb] rounded-xl hover:bg-blue-700 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]"
@@ -242,6 +246,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const [activeMerchantTransactionId, setActiveMerchantTransactionId] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [trialStartedAt, setTrialStartedAt] = useState<number | null>(null);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
@@ -505,6 +510,17 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const transactionId = urlParams.get('id');
+    if (transactionId) {
+      setActiveMerchantTransactionId(transactionId);
+      // Remove the id from URL without refreshing
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
   const fetchUserSubscription = async (uid: string) => {
     try {
       const userRef = doc(db, 'users', uid);
@@ -547,19 +563,19 @@ export default function App() {
 
     try {
       setLoading(true);
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, { 
-        isSubscribed: true,
-        fullName: user.displayName || user.email?.split('@')[0] || 'Member',
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      const response = await axios.post('/api/payment/initiate', {
+        amount: 500,
+        uid: user.uid
+      });
       
-      setIsSubscribed(true);
-      setIsTrialExpired(false);
-      setShowPricing(false);
-      toast.success("Successfully subscribed! You now have full access.");
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error("No redirect URL received");
+      }
     } catch (err) {
-      toast.error("Subscription failed. Please try again.");
+      console.error("Payment initiation failed:", err);
+      toast.error("Payment initiation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -1082,6 +1098,16 @@ export default function App() {
   }
 
   if (!user) {
+    if (activeMerchantTransactionId) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-gray-950">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">Authenticating...</p>
+          </div>
+        </div>
+      );
+    }
     if (showPricing) {
       return (
         <Pricing 
@@ -1332,6 +1358,23 @@ export default function App() {
   }
 
   // Render Dashboard or Pricing (Subscription Gate)
+  if (user && activeMerchantTransactionId) {
+    return (
+      <PaymentStatus 
+        transactionId={activeMerchantTransactionId} 
+        uid={user.uid} 
+        onFinish={(success) => {
+          setActiveMerchantTransactionId(null);
+          if (success) {
+            setIsSubscribed(true);
+            setIsTrialExpired(false);
+            setShowPricing(false);
+          }
+        }} 
+      />
+    );
+  }
+
   if (user && isSubscribed === false && (!trialStartedAt || isTrialExpired)) {
     return (
       <Pricing 
