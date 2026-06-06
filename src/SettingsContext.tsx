@@ -18,7 +18,7 @@ export interface AppSettings {
 }
 
 export const defaultSettings: AppSettings = {
-  companyName: 'Dharmveer Inventory',
+  companyName: 'Pro Inventory',
   itemsPerPage: '10',
   defaultExportFormat: 'excel',
   enableEmailNotifications: true,
