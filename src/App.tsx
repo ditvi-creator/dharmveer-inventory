@@ -1433,6 +1433,18 @@ export default function App() {
     );
   }
 
+  if (showPricing) {
+    return (
+      <Pricing 
+        onBack={() => setShowPricing(false)} 
+        onSubscribe={handleSubscribe}
+        onStartTrial={handleStartTrial}
+        isLoggedIn={true}
+        isTrialUsed={!!trialStartedAt}
+      />
+    );
+  }
+
   return (
     <Layout 
       onAddItem={openAddModal}
