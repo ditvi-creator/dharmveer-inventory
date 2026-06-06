@@ -3,21 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense, lazy } from 'react';
 import { Layout } from './components/Layout';
 import { StockTable } from './components/StockTable';
 import { ItemModal } from './components/ItemModal';
 import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
-import { BookingsModal } from './components/BookingsModal';
-import { ChallanModal } from './components/ChallanModal';
-import { HistoryModal } from './components/HistoryModal';
-import { Settings as SettingsPage } from './components/Settings';
-import { Analytics as AnalyticsPage } from './components/Analytics';
-import { UserProfile } from './components/UserProfile';
+
+// Lazy load non-critical components
+const BookingsModal = lazy(() => import('./components/BookingsModal').then(m => ({ default: m.BookingsModal })));
+const ChallanModal = lazy(() => import('./components/ChallanModal').then(m => ({ default: m.ChallanModal })));
+const HistoryModal = lazy(() => import('./components/HistoryModal').then(m => ({ default: m.HistoryModal })));
+const SettingsPage = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
+const AnalyticsPage = lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })));
+const UserProfile = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
+const Pricing = lazy(() => import('./components/Pricing').then(m => ({ default: m.Pricing })));
+
 import { StockItem, Booking } from './types';
 import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import Papa from 'papaparse';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, serverTimestamp } from 'firebase/firestore';
@@ -25,9 +28,9 @@ import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { AiChatbot } from './components/AiChatbot';
-import { Pricing } from './components/Pricing';
 import { PaymentStatus } from './components/PaymentStatus';
-import axios from 'axios';
+
+const axios = () => import('axios');
 
 enum OperationType {
   CREATE = 'create',
@@ -241,6 +244,12 @@ function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, o
     </div>
   );
 }
+
+const LoadingFallback = () => (
+  <div className="flex-1 flex items-center justify-center p-12">
+    <Loader2 className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin opacity-50" />
+  </div>
+);
 
 export default function App() {
   const { settings } = useSettingsContext();
@@ -590,7 +599,8 @@ export default function App() {
 
     try {
       setLoading(true);
-      const response = await axios.post('/api/payment/initiate', {
+      const { default: api } = await axios();
+      const response = await api.post('/api/payment/initiate', {
         amount: 500,
         uid: user.uid
       });
@@ -715,10 +725,20 @@ export default function App() {
   const fetchStock = async (uid: string) => {
     setLoading(true);
     try {
+      // Try to load from cache first for instant feel
+      const cached = localStorage.getItem(`stock_items_${uid}`);
+      if (cached && items.length === 0) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) setItems(parsed);
+        } catch (e) {}
+      }
+
       const q = query(collection(db, 'stockItems'), where('ownerId', '==', uid));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as StockItem));
       setItems(data);
+      localStorage.setItem(`stock_items_${uid}`, JSON.stringify(data));
     } catch (err) {
       handleFirestoreError(err, OperationType.LIST, 'stockItems');
     } finally {
@@ -1019,76 +1039,79 @@ export default function App() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        setLoading(true);
-        try {
-          // Chunked batch imports
-          let batch = writeBatch(db);
-          let count = 0;
-          
-          for (const row of results.data as any[]) {
-            const item: any = {};
+    // Load papaparse dynamically
+    import('papaparse').then((Papa) => {
+      Papa.default.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+          setLoading(true);
+          try {
+            // Chunked batch imports
+            let batch = writeBatch(db);
+            let count = 0;
             
-            Object.keys(row).forEach(key => {
-              const normalizedKey = key.toLowerCase().trim();
-              const val = row[key];
+            for (const row of results.data as any[]) {
+              const item: any = {};
+              
+              Object.keys(row).forEach(key => {
+                const normalizedKey = key.toLowerCase().trim();
+                const val = row[key];
 
-              if (normalizedKey.includes('item name') || normalizedKey === 'name') item.name = val;
-              else if (normalizedKey.includes('size')) item.size = val;
-              else if (normalizedKey.includes('unit')) item.unit = val;
-              else if (normalizedKey.includes('mp')) item.openingStockMP = Number(val) || 0;
-              else if (normalizedKey.includes('kl')) item.openingStockKL = Number(val) || 0;
-              else if (normalizedKey.includes('reorder')) item.reorderLevel = Number(val) || 0;
-              else if (normalizedKey.includes('party')) item.partyName = val;
-            });
+                if (normalizedKey.includes('item name') || normalizedKey === 'name') item.name = val;
+                else if (normalizedKey.includes('size')) item.size = val;
+                else if (normalizedKey.includes('unit')) item.unit = val;
+                else if (normalizedKey.includes('mp')) item.openingStockMP = Number(val) || 0;
+                else if (normalizedKey.includes('kl')) item.openingStockKL = Number(val) || 0;
+                else if (normalizedKey.includes('reorder')) item.reorderLevel = Number(val) || 0;
+                else if (normalizedKey.includes('party')) item.partyName = val;
+              });
 
-            const newItem = {
-              name: item.name || 'Unnamed Item',
-              size: item.size || 'N/A',
-              unit: item.unit || 'BOX',
-              openingStockMP: item.openingStockMP || 0,
-              openingStockKL: item.openingStockKL || 0,
-              reorderLevel: item.reorderLevel || 0,
-              partyName: item.partyName || '',
-              stockIn: 0,
-              stockOut: 0,
-              booked: 0,
-              balance: (item.openingStockMP || 0) + (item.openingStockKL || 0),
-              ownerId: user.uid,
-              updatedAt: serverTimestamp()
-            };
+              const newItem = {
+                name: item.name || 'Unnamed Item',
+                size: item.size || 'N/A',
+                unit: item.unit || 'BOX',
+                openingStockMP: item.openingStockMP || 0,
+                openingStockKL: item.openingStockKL || 0,
+                reorderLevel: item.reorderLevel || 0,
+                partyName: item.partyName || '',
+                stockIn: 0,
+                stockOut: 0,
+                booked: 0,
+                balance: (item.openingStockMP || 0) + (item.openingStockKL || 0),
+                ownerId: user.uid,
+                updatedAt: serverTimestamp()
+              };
 
-            const docRef = doc(collection(db, 'stockItems'));
-            batch.set(docRef, newItem);
-            
-            count++;
-            if (count === 500) {
-              await batch.commit();
-              batch = writeBatch(db);
-              count = 0;
+              const docRef = doc(collection(db, 'stockItems'));
+              batch.set(docRef, newItem);
+              
+              count++;
+              if (count === 500) {
+                await batch.commit();
+                batch = writeBatch(db);
+                count = 0;
+              }
             }
+            
+            if (count > 0) {
+              await batch.commit();
+            }
+            alert(`Successfully imported items`);
+            fetchStock(user.uid);
+          } catch (err) {
+            console.error('Bulk upload failed', err);
+            alert('Failed to import items. Please check the console for details.');
+          } finally {
+            setLoading(false);
+            event.target.value = '';
           }
-          
-          if (count > 0) {
-            await batch.commit();
-          }
-          alert(`Successfully imported items`);
-          fetchStock(user.uid);
-        } catch (err) {
-          console.error('Bulk upload failed', err);
-          alert('Failed to import items. Please check the console for details.');
-        } finally {
-          setLoading(false);
-          event.target.value = '';
+        },
+        error: (error) => {
+          console.error('CSV Parsing Error:', error);
+          alert('Error parsing CSV file');
         }
-      },
-      error: (error) => {
-        console.error('CSV Parsing Error:', error);
-        alert('Error parsing CSV file');
-      }
+      });
     });
   };
 
@@ -1117,9 +1140,14 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900/50 flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
-        <p className="mt-4 text-xs font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest">Checking Authentication...</p>
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col items-center justify-center transition-colors duration-500">
+        <div className="relative">
+          <div className="w-12 h-12 border-2 border-blue-100 dark:border-gray-800 rounded-full border-t-blue-600 dark:border-t-blue-400 animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-pulse" />
+          </div>
+        </div>
+        <p className="mt-6 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] animate-pulse">Initializing System</p>
       </div>
     );
   }
@@ -1423,25 +1451,29 @@ export default function App() {
 
   if (user && isSubscribed === false && (isTrialExpired || !trialStartedAt)) {
     return (
-      <Pricing 
-        onBack={logout} 
-        onSubscribe={handleSubscribe}
-        onStartTrial={handleStartTrial}
-        isLoggedIn={true}
-        isTrialUsed={!!trialStartedAt}
-      />
+      <Suspense fallback={<LoadingFallback />}>
+        <Pricing 
+          onBack={logout} 
+          onSubscribe={handleSubscribe}
+          onStartTrial={handleStartTrial}
+          isLoggedIn={true}
+          isTrialUsed={!!trialStartedAt}
+        />
+      </Suspense>
     );
   }
 
   if (showPricing) {
     return (
-      <Pricing 
-        onBack={() => setShowPricing(false)} 
-        onSubscribe={handleSubscribe}
-        onStartTrial={handleStartTrial}
-        isLoggedIn={true}
-        isTrialUsed={!!trialStartedAt}
-      />
+      <Suspense fallback={<LoadingFallback />}>
+        <Pricing 
+          onBack={() => setShowPricing(false)} 
+          onSubscribe={handleSubscribe}
+          onStartTrial={handleStartTrial}
+          isLoggedIn={true}
+          isTrialUsed={!!trialStartedAt}
+        />
+      </Suspense>
     );
   }
 
@@ -1762,21 +1794,29 @@ export default function App() {
             isSubscribed={isSubscribed}
           />
         </>
-      ) : currentPage === 'analytics' ? (
-        <AnalyticsPage items={items} />
-      ) : currentPage === 'profile' ? (
-        <UserProfile user={user} onLogout={logout} />
       ) : (
-        <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
+        <Suspense fallback={<LoadingFallback />}>
+          {currentPage === 'analytics' ? (
+            <AnalyticsPage items={items} />
+          ) : currentPage === 'profile' ? (
+            <UserProfile user={user} onLogout={logout} />
+          ) : (
+            <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
+          )}
+        </Suspense>
       )}
         </motion.div>
       </AnimatePresence>
 
-      <HistoryModal
-        isOpen={!!selectedItemForHistory}
-        onClose={() => setSelectedItemForHistory(null)}
-        item={selectedItemForHistory!}
-      />
+      <Suspense fallback={null}>
+        {selectedItemForHistory && (
+          <HistoryModal
+            isOpen={true}
+            onClose={() => setSelectedItemForHistory(null)}
+            item={selectedItemForHistory}
+          />
+        )}
+      </Suspense>
 
       <ItemModal godowns={godowns} 
         isOpen={isModalOpen} 
@@ -1806,20 +1846,28 @@ export default function App() {
         description="This will permanently delete this stock item. This action cannot be undone."
       />
 
-      <BookingsModal
-        isOpen={!!selectedItemForBookings}
-        onClose={() => setSelectedItemForBookings(null)}
-        item={selectedItemForBookings}
-        onSave={saveBookings}
-        partyNames={allPartyNames}
-      />
+      <Suspense fallback={null}>
+        {selectedItemForBookings && (
+          <BookingsModal
+            isOpen={true}
+            onClose={() => setSelectedItemForBookings(null)}
+            item={selectedItemForBookings}
+            onSave={saveBookings}
+            partyNames={allPartyNames}
+          />
+        )}
+      </Suspense>
 
-      <ChallanModal
-        isOpen={!!selectedChallanBooking}
-        onClose={() => setSelectedChallanBooking(null)}
-        item={selectedChallanBooking?.item || null}
-        booking={selectedChallanBooking?.booking || null}
-      />
+      <Suspense fallback={null}>
+        {selectedChallanBooking && (
+          <ChallanModal
+            isOpen={true}
+            onClose={() => setSelectedChallanBooking(null)}
+            item={selectedChallanBooking.item}
+            booking={selectedChallanBooking.booking}
+          />
+        )}
+      </Suspense>
       
       <AiChatbot 
         items={items}
