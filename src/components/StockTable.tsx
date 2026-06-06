@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { History, Plus, FileText, Bell, PenLine, Trash2, Printer, AlertTriangle, ImageIcon, X } from 'lucide-react';
+import { History, Plus, FileText, Bell, PenLine, Trash2, Printer, AlertTriangle, ImageIcon, X, Clock } from 'lucide-react';
 import { StockItem, Godown } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { useSettingsContext } from '../SettingsContext';
+import { TrialCountdown } from './TrialCountdown';
 
 interface StockTableProps {
   items: StockItem[];
@@ -14,6 +15,8 @@ interface StockTableProps {
   onOpenBookings: (item: StockItem) => void;
   onOpenHistory: (item: StockItem) => void;
   onOpenChallan: (item: StockItem, booking: any) => void;
+  trialStartedAt?: number | null;
+  isSubscribed?: boolean | null;
 }
 
 // movement input code stays same...
@@ -59,14 +62,24 @@ export const StockTable: React.FC<StockTableProps> = ({
   onDeleteItem, 
   onOpenBookings,
   onOpenHistory,
-  onOpenChallan
+  onOpenChallan,
+  trialStartedAt,
+  isSubscribed
 }) => {
   const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}];
   const { settings } = useSettingsContext();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+    <div className="flex flex-col">
+      {/* Trial Countdown - Fixed or top right relative to container */}
+      {!isSubscribed && trialStartedAt && (
+        <div className="flex justify-end mb-2">
+          <TrialCountdown trialStartedAt={trialStartedAt} />
+        </div>
+      )}
+      
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
       <AnimatePresence>
         {previewImage && (
           <motion.div
@@ -354,6 +367,7 @@ export const StockTable: React.FC<StockTableProps> = ({
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 };

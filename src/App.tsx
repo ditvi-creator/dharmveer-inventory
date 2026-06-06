@@ -495,7 +495,14 @@ export default function App() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    
+    const handleOpenPricing = () => setShowPricing(true);
+    window.addEventListener('open-pricing', handleOpenPricing);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-pricing', handleOpenPricing);
+    };
   }, []);
 
   useEffect(() => {
@@ -543,10 +550,27 @@ export default function App() {
           if (Date.now() - startTime > threeDaysInMs) {
             setIsTrialExpired(true);
           }
+        } else if (!userData.isSubscribed) {
+          // Document exists but no trialStartedAt and not subscribed, start trial now
+          const now = Date.now();
+          await updateDoc(userRef, { 
+            trialStartedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          setTrialStartedAt(now);
         }
       } else {
-        // New user or no profile, set as not subscribed by default
+        // New user or no profile, set as not subscribed by default and start trial
+        const now = Date.now();
+        await setDoc(userRef, { 
+          fullName: auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Member',
+          isSubscribed: false,
+          trialStartedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
         setIsSubscribed(false);
+        setTrialStartedAt(now);
       }
     } catch (err) {
       console.error("Error fetching subscription status", err);
@@ -1703,6 +1727,8 @@ export default function App() {
             onOpenBookings={(item) => setSelectedItemForBookings(item)}
             onOpenChallan={handleOpenChallan}
             onOpenHistory={(item) => setSelectedItemForHistory(item)}
+            trialStartedAt={trialStartedAt}
+            isSubscribed={isSubscribed}
           />
         </>
       ) : currentPage === 'analytics' ? (
