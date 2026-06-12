@@ -18,7 +18,7 @@ export interface AppSettings {
 }
 
 export const defaultSettings: AppSettings = {
-  companyName: 'Pro Inventory',
+  companyName: 'Stockify',
   itemsPerPage: '10',
   defaultExportFormat: 'excel',
   enableEmailNotifications: true,
@@ -114,7 +114,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const saved = localStorage.getItem('app-settings-config');
     if (saved) {
       try {
-        return { ...defaultSettings, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (parsed.companyName === 'Pro Inventory') {
+          parsed.companyName = 'Stockify';
+        }
+        return { ...defaultSettings, ...parsed };
       } catch (e) {
         // ignore
       }

@@ -110,7 +110,7 @@ function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, o
         >
           <img 
             src="/logo.png" 
-            alt="Pro Inventory" 
+            alt="Stockify" 
             className="w-8 h-8 rounded-lg shadow-sm" 
             referrerPolicy="no-referrer"
           />
@@ -254,6 +254,11 @@ const LoadingFallback = () => (
 export default function App() {
   const { settings } = useSettingsContext();
   const { setTheme } = useTheme();
+
+  useEffect(() => {
+    document.title = "Stockify";
+  }, []);
+
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
@@ -1180,7 +1185,7 @@ export default function App() {
         <LandingPage 
           onSignIn={() => setShowLogin(true)} 
           onPricing={() => setShowPricing(true)}
-          appName="Pro Inventory" 
+          appName="Stockify" 
         />
       );
     }
@@ -1320,7 +1325,7 @@ export default function App() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="text-center mb-8">
-                  <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-white mb-2 tracking-tight">Join Pro Inventory</h1>
+                  <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-white mb-2 tracking-tight">Join Stockify</h1>
                   <p className="text-[#64748b] dark:text-gray-400 text-[15px]">Create your free account today</p>
                 </div>
 

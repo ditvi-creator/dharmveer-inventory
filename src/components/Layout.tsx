@@ -42,13 +42,13 @@ export const Layout: React.FC<LayoutProps> = ({
               <div className="flex items-center gap-4">
                 <img 
                   src="/logo.png" 
-                  alt="Pro Inventory" 
+                  alt="Stockify" 
                   className="w-8 h-8 rounded-lg shadow-sm" 
                   referrerPolicy="no-referrer"
                 />
                 <div>
                   <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">
-                    {currentPage === 'dashboard' ? (settings.companyName || "Pro Inventory") : "Pro Inventory"}
+                    {currentPage === 'dashboard' ? (settings.companyName || "Stockify") : "Stockify"}
                   </h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">Track and manage your inventory</p>
                 </div>
