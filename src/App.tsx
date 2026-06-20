@@ -615,9 +615,13 @@ export default function App() {
       } else {
         throw new Error("No redirect URL received");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Payment initiation failed:", err);
-      toast.error("Payment initiation failed. Please try again.");
+      const errorMessage = err.response?.data?.details 
+        ? (typeof err.response.data.details === 'string' ? err.response.data.details : JSON.stringify(err.response.data.details))
+        : (err.response?.data?.error || "Payment initiation failed. Please try again.");
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

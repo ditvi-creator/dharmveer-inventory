@@ -28,12 +28,16 @@ async function getPhonePeToken() {
     return cachedToken.token;
   }
 
+  if (!CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error("PhonePe Client ID or Client Secret is missing in environment variables");
+  }
+
   try {
     const params = new URLSearchParams();
     params.append('grant_type', 'client_credentials');
-    params.append('client_id', CLIENT_ID || '');
-    params.append('client_secret', CLIENT_SECRET || '');
-    params.append('scope', 'checkout_v2'); // Standard scope for PG V2
+    params.append('client_id', CLIENT_ID);
+    params.append('client_secret', CLIENT_SECRET);
+    params.append('scope', 'pay'); // Standard scope for V2 standard checkout
 
     const response = await axios.post(PHONEPE_AUTH_URL, params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -46,8 +50,9 @@ async function getPhonePeToken() {
     };
     return access_token;
   } catch (error: any) {
-    console.error("PhonePe Auth Error:", error.response?.data || error.message);
-    throw new Error("PhonePe authentication failed");
+    const errorData = error.response?.data;
+    console.error("PhonePe Auth Error Details:", errorData || error.message);
+    throw new Error(`PhonePe authentication failed: ${JSON.stringify(errorData || error.message)}`);
   }
 }
 
@@ -111,16 +116,20 @@ async function startServer() {
   app.post("/api/payment/initiate", async (req, res) => {
     try {
       const { amount, uid } = req.body;
-      const merchantTransactionId = `MT${Date.now()}`;
+      if (!MERCHANT_ID) {
+        return res.status(400).json({ error: "PHONEPE_MERCHANT_ID is not configured" });
+      }
+
+      const merchantTransactionId = `T${Date.now()}`;
       
       const token = await getPhonePeToken();
 
       const paymentPayload = {
         merchantOrderId: merchantTransactionId,
-        merchantUserId: uid,
-        amount: amount * 100, // PhonePe accepts amount in paise
+        merchantUserId: uid.replace(/[^a-zA-Z0-9]/g, ''), // Ensure clean ID
+        amount: Math.round(amount * 100), // Ensure integer paise
         redirectUrl: `${APP_BASE_URL}/payment-status?id=${merchantTransactionId}`,
-        redirectMode: "POST",
+        redirectMode: "REDIRECT",
         callbackUrl: `${APP_BASE_URL}/api/payment/callback`,
         paymentInstrument: {
           type: "PAY_PAGE",
@@ -140,13 +149,22 @@ async function startServer() {
         }
       );
 
-      res.json({
-        url: response.data.data.redirectInfo.url,
-        merchantTransactionId
-      });
+      if (response.data && response.data.data && response.data.data.redirectInfo) {
+        res.json({
+          url: response.data.data.redirectInfo.url,
+          merchantTransactionId
+        });
+      } else {
+        console.error("Malformed PhonePe Response:", response.data);
+        res.status(500).json({ error: "Invalid response from payment gateway" });
+      }
     } catch (error: any) {
-      console.error("PhonePe Initiation Error:", error.response?.data || error.message);
-      res.status(500).json({ error: "Failed to initiate payment" });
+      const errorData = error.response?.data;
+      console.error("PhonePe Initiation Error Details:", errorData || error.message);
+      res.status(500).json({ 
+        error: "Failed to initiate payment",
+        details: errorData || error.message
+      });
     }
   });
 
