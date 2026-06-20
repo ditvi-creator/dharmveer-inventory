@@ -12,10 +12,44 @@ const PHONEPE_HOST_URL = process.env.PHONEPE_ENV === "production"
   ? "https://api.phonepe.com/apis/pg" 
   : "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
+const PHONEPE_AUTH_URL = process.env.PHONEPE_ENV === "production"
+  ? "https://api.phonepe.com/apis/identity-manager/v1/oauth/token"
+  : "https://api-preprod.phonepe.com/apis/identity-manager/v1/oauth/token";
+
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
-const SALT_KEY = process.env.PHONEPE_SALT_KEY;
-const SALT_INDEX = process.env.PHONEPE_SALT_INDEX || "1";
+const CLIENT_ID = process.env.PHONEPE_CLIENT_ID;
+const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
+
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+async function getPhonePeToken() {
+  if (cachedToken && cachedToken.expiresAt > Date.now()) {
+    return cachedToken.token;
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.append('grant_type', 'client_credentials');
+    params.append('client_id', CLIENT_ID || '');
+    params.append('client_secret', CLIENT_SECRET || '');
+    params.append('scope', 'checkout_v2'); // Standard scope for PG V2
+
+    const response = await axios.post(PHONEPE_AUTH_URL, params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+
+    const { access_token, expires_in } = response.data;
+    cachedToken = {
+      token: access_token,
+      expiresAt: Date.now() + (expires_in - 60) * 1000 // Buffer of 60 seconds
+    };
+    return access_token;
+  } catch (error: any) {
+    console.error("PhonePe Auth Error:", error.response?.data || error.message);
+    throw new Error("PhonePe authentication failed");
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -58,6 +92,8 @@ async function startServer() {
           systemInstruction,
           tools,
           temperature: 0.7,
+          topP: 1,
+          topK: 1
         }
       });
       
@@ -71,46 +107,41 @@ async function startServer() {
     }
   });
 
-  // PhonePe Payment Initiation
+  // PhonePe Payment Initiation (V2)
   app.post("/api/payment/initiate", async (req, res) => {
     try {
       const { amount, uid } = req.body;
       const merchantTransactionId = `MT${Date.now()}`;
       
+      const token = await getPhonePeToken();
+
       const paymentPayload = {
-        merchantId: MERCHANT_ID,
-        merchantTransactionId: merchantTransactionId,
+        merchantOrderId: merchantTransactionId,
         merchantUserId: uid,
         amount: amount * 100, // PhonePe accepts amount in paise
         redirectUrl: `${APP_BASE_URL}/payment-status?id=${merchantTransactionId}`,
-        redirectMode: "REDIRECT",
+        redirectMode: "POST",
         callbackUrl: `${APP_BASE_URL}/api/payment/callback`,
         paymentInstrument: {
           type: "PAY_PAGE",
         },
       };
 
-      const buffer = Buffer.from(JSON.stringify(paymentPayload), "utf8");
-      const base64Payload = buffer.toString("base64");
-
-      const stringToHash = base64Payload + "/v1/pay" + SALT_KEY;
-      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-      const xVerify = sha256 + "###" + SALT_INDEX;
-
       const response = await axios.post(
-        `${PHONEPE_HOST_URL}/v1/pay`,
-        { request: base64Payload },
+        `${PHONEPE_HOST_URL}/checkout/v2/pay`,
+        paymentPayload,
         {
           headers: {
             "Content-Type": "application/json",
-            "X-VERIFY": xVerify,
+            "Authorization": `Bearer ${token}`,
+            "X-Merchant-Id": MERCHANT_ID,
             accept: "application/json",
           },
         }
       );
 
       res.json({
-        url: response.data.data.instrumentResponse.redirectInfo.url,
+        url: response.data.data.redirectInfo.url,
         merchantTransactionId
       });
     } catch (error: any) {
@@ -119,22 +150,20 @@ async function startServer() {
     }
   });
 
-  // PhonePe Payment Status Check
+  // PhonePe Payment Status Check (V2)
   app.get("/api/payment/status/:transactionId", async (req, res) => {
     const { transactionId } = req.params;
 
     try {
-      const stringToHash = `/v1/status/${MERCHANT_ID}/${transactionId}${SALT_KEY}`;
-      const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
-      const xVerify = sha256 + "###" + SALT_INDEX;
+      const token = await getPhonePeToken();
 
       const response = await axios.get(
-        `${PHONEPE_HOST_URL}/v1/status/${MERCHANT_ID}/${transactionId}`,
+        `${PHONEPE_HOST_URL}/checkout/v2/order/${transactionId}/status`,
         {
           headers: {
             "Content-Type": "application/json",
-            "X-VERIFY": xVerify,
-            "X-MERCHANT-ID": MERCHANT_ID,
+            "Authorization": `Bearer ${token}`,
+            "X-Merchant-Id": MERCHANT_ID,
             accept: "application/json",
           },
         }
