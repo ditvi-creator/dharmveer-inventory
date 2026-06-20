@@ -14,11 +14,12 @@ const PHONEPE_HOST_URL = process.env.PHONEPE_ENV === "production"
 
 const PHONEPE_AUTH_URL = process.env.PHONEPE_ENV === "production"
   ? "https://api.phonepe.com/apis/identity-manager/v1/oauth/token"
-  : "https://api-preprod.phonepe.com/apis/identity-manager/v1/oauth/token";
+  : "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token";
 
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
 const CLIENT_ID = process.env.PHONEPE_CLIENT_ID;
 const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
+const CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || "1";
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
@@ -29,7 +30,7 @@ async function getPhonePeToken() {
   }
 
   if (!CLIENT_ID || !CLIENT_SECRET) {
-    throw new Error("PhonePe Client ID or Client Secret is missing in environment variables");
+    throw new Error("PhonePe Client ID or Client Secret is missing in environment variables. Please add PHONEPE_CLIENT_ID and PHONEPE_CLIENT_SECRET.");
   }
 
   try {
@@ -37,22 +38,25 @@ async function getPhonePeToken() {
     params.append('grant_type', 'client_credentials');
     params.append('client_id', CLIENT_ID);
     params.append('client_secret', CLIENT_SECRET);
-    params.append('scope', 'pay'); // Standard scope for V2 standard checkout
+    params.append('client_version', CLIENT_VERSION);
 
     const response = await axios.post(PHONEPE_AUTH_URL, params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
 
-    const { access_token, expires_in } = response.data;
+    const { access_token, expires_at } = response.data;
+    // expires_at from PhonePe is usually an epoch timestamp in seconds
+    const expiryTime = expires_at ? (expires_at * 1000) : (Date.now() + 3500 * 1000);
+    
     cachedToken = {
       token: access_token,
-      expiresAt: Date.now() + (expires_in - 60) * 1000 // Buffer of 60 seconds
+      expiresAt: expiryTime - 60000 // Buffer of 60 seconds
     };
     return access_token;
   } catch (error: any) {
     const errorData = error.response?.data;
     console.error("PhonePe Auth Error Details:", errorData || error.message);
-    throw new Error(`PhonePe authentication failed: ${JSON.stringify(errorData || error.message)}`);
+    throw new Error(`PhonePe authentication failed. Verify your Client ID, Secret, and Version. API Response: ${JSON.stringify(errorData || error.message)}`);
   }
 }
 

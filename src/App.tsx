@@ -604,9 +604,9 @@ export default function App() {
 
     try {
       setLoading(true);
-      const { default: api } = await axios();
+      const api = (await import('axios')).default;
       const response = await api.post('/api/payment/initiate', {
-        amount: 500,
+        amount: 499,
         uid: user.uid
       });
       
