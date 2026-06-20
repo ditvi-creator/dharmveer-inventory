@@ -1416,12 +1416,24 @@ export default function App() {
   if (user && isSubscribed === false && (isTrialExpired || !trialStartedAt)) {
     return (
       <Suspense fallback={<LoadingFallback />}>
+        <Toaster position="top-right" />
         <Pricing 
           onBack={logout} 
           onSubscribe={handleSubscribe}
           onStartTrial={handleStartTrial}
           isLoggedIn={true}
           isTrialUsed={!!trialStartedAt}
+        />
+        <PhonePeDialog
+          isOpen={isPhonePeDialogOpen}
+          onClose={() => setIsPhonePeDialogOpen(false)}
+          userId={user?.uid || ''}
+          userEmail={user?.email || ''}
+          onPaymentSuccess={() => {
+            setIsSubscribed(true);
+            setIsPhonePeDialogOpen(false);
+            setShowPricing(false);
+          }}
         />
       </Suspense>
     );
@@ -1430,12 +1442,24 @@ export default function App() {
   if (showPricing) {
     return (
       <Suspense fallback={<LoadingFallback />}>
+        <Toaster position="top-right" />
         <Pricing 
           onBack={() => setShowPricing(false)} 
           onSubscribe={handleSubscribe}
           onStartTrial={handleStartTrial}
           isLoggedIn={true}
           isTrialUsed={!!trialStartedAt}
+        />
+        <PhonePeDialog
+          isOpen={isPhonePeDialogOpen}
+          onClose={() => setIsPhonePeDialogOpen(false)}
+          userId={user?.uid || ''}
+          userEmail={user?.email || ''}
+          onPaymentSuccess={() => {
+            setIsSubscribed(true);
+            setIsPhonePeDialogOpen(false);
+            setShowPricing(false);
+          }}
         />
       </Suspense>
     );
