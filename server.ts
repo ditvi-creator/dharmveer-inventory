@@ -25,7 +25,8 @@ const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
 async function getPhonePeToken() {
-  if (cachedToken && cachedToken.expiresAt > Date.now()) {
+  // Bypass cache for debugging
+  if (cachedToken && false) {
     return cachedToken.token;
   }
 
@@ -43,7 +44,7 @@ async function getPhonePeToken() {
     const response = await axios.post(PHONEPE_AUTH_URL, params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-
+    console.log("PhonePe Auth Token Response:", response.data);
     const { access_token, expires_at } = response.data;
     // expires_at from PhonePe is usually an epoch timestamp in seconds
     const expiryTime = expires_at ? (expires_at * 1000) : (Date.now() + 3500 * 1000);
@@ -129,15 +130,17 @@ async function startServer() {
       const token = await getPhonePeToken();
 
       const paymentPayload = {
+        merchantId: MERCHANT_ID,
         merchantOrderId: merchantTransactionId,
-        merchantUserId: uid.replace(/[^a-zA-Z0-9]/g, ''), // Ensure clean ID
-        amount: Math.round(amount * 100), // Ensure integer paise
+        merchantUserId: uid.replace(/[^a-zA-Z0-9]/g, ''), 
+        amount: Math.round(amount * 100), 
         redirectUrl: `${APP_BASE_URL}/payment-status?id=${merchantTransactionId}`,
         redirectMode: "REDIRECT",
         callbackUrl: `${APP_BASE_URL}/api/payment/callback`,
+        mobileNumber: "9999999999",
         paymentInstrument: {
-          type: "PAY_PAGE",
-        },
+          type: "PAY_PAGE"
+        }
       };
 
       const response = await axios.post(
@@ -146,7 +149,7 @@ async function startServer() {
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            "Authorization": `O-Bearer ${token}`,
             "X-Merchant-Id": MERCHANT_ID,
             accept: "application/json",
           },
@@ -184,7 +187,7 @@ async function startServer() {
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            "Authorization": `O-Bearer ${token}`,
             "X-Merchant-Id": MERCHANT_ID,
             accept: "application/json",
           },
