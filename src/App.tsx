@@ -28,9 +28,7 @@ import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { AiChatbot } from './components/AiChatbot';
-import { PaymentStatus } from './components/PaymentStatus';
-
-const axios = () => import('axios');
+import { PhonePeDialog } from './components/PhonePeDialog';
 
 enum OperationType {
   CREATE = 'create',
@@ -263,9 +261,10 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [activeMerchantTransactionId, setActiveMerchantTransactionId] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [trialStartedAt, setTrialStartedAt] = useState<number | null>(null);
+  const [activeMerchantTransactionId, setActiveMerchantTransactionId] = useState<string | null>(null);
+  const [isPhonePeDialogOpen, setIsPhonePeDialogOpen] = useState(false);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [signupName, setSignupName] = useState('');
@@ -537,8 +536,15 @@ export default function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const transactionId = urlParams.get('id');
+    const paymentStatus = urlParams.get('payment');
     if (transactionId) {
       setActiveMerchantTransactionId(transactionId);
+      if (paymentStatus === 'success') {
+        toast.success("Payment Success! Custom subscription is active.");
+        setIsSubscribed(true);
+      } else if (paymentStatus === 'failed') {
+        toast.error("Payment failed or cancelled. Please try again.");
+      }
       // Remove the id from URL without refreshing
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
@@ -601,30 +607,7 @@ export default function App() {
       setAuthMode('signup');
       return;
     }
-
-    try {
-      setLoading(true);
-      const api = (await import('axios')).default;
-      const response = await api.post('/api/payment/initiate', {
-        amount: 499,
-        uid: user.uid
-      });
-      
-      if (response.data.url) {
-        window.location.href = response.data.url;
-      } else {
-        throw new Error("No redirect URL received");
-      }
-    } catch (err: any) {
-      console.error("Payment initiation failed:", err);
-      const errorMessage = err.response?.data?.details 
-        ? (typeof err.response.data.details === 'string' ? err.response.data.details : JSON.stringify(err.response.data.details))
-        : (err.response?.data?.error || "Payment initiation failed. Please try again.");
-      
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    setIsPhonePeDialogOpen(true);
   };
 
   const handleStartTrial = async () => {
@@ -1162,16 +1145,6 @@ export default function App() {
   }
 
   if (!user) {
-    if (activeMerchantTransactionId) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-gray-950">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">Authenticating...</p>
-          </div>
-        </div>
-      );
-    }
     if (showPricing) {
       return (
         <Pricing 
@@ -1437,24 +1410,6 @@ export default function App() {
         <Loader2 className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
         <p className="mt-4 text-xs font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest">Loading Catalog...</p>
       </div>
-    );
-  }
-
-  // Render Dashboard or Pricing (Subscription Gate)
-  if (user && activeMerchantTransactionId) {
-    return (
-      <PaymentStatus 
-        transactionId={activeMerchantTransactionId} 
-        uid={user.uid} 
-        onFinish={(success) => {
-          setActiveMerchantTransactionId(null);
-          if (success) {
-            setIsSubscribed(true);
-            setIsTrialExpired(false);
-            setShowPricing(false);
-          }
-        }} 
-      />
     );
   }
 
@@ -1883,6 +1838,18 @@ export default function App() {
         onOpenAddItem={openAddModal}
         onPageChange={setCurrentPage}
         onToggleTheme={setTheme}
+      />
+
+      <PhonePeDialog
+        isOpen={isPhonePeDialogOpen}
+        onClose={() => setIsPhonePeDialogOpen(false)}
+        userId={user?.uid || ''}
+        userEmail={user?.email || ''}
+        onPaymentSuccess={() => {
+          setIsSubscribed(true);
+          setIsPhonePeDialogOpen(false);
+          setShowPricing(false);
+        }}
       />
     </Layout>
   );
