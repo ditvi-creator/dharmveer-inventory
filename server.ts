@@ -9,7 +9,7 @@ import crypto from "crypto";
 dotenv.config();
 
 const PHONEPE_HOST_URL = process.env.PHONEPE_ENV === "production" 
-  ? "https://api.phonepe.com/apis/hermes" 
+  ? "https://api.phonepe.com/apis/pg" 
   : "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
@@ -93,12 +93,12 @@ async function startServer() {
       const buffer = Buffer.from(JSON.stringify(paymentPayload), "utf8");
       const base64Payload = buffer.toString("base64");
 
-      const stringToHash = base64Payload + "/pg/v1/pay" + SALT_KEY;
+      const stringToHash = base64Payload + "/v1/pay" + SALT_KEY;
       const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
       const xVerify = sha256 + "###" + SALT_INDEX;
 
       const response = await axios.post(
-        `${PHONEPE_HOST_URL}/pg/v1/pay`,
+        `${PHONEPE_HOST_URL}/v1/pay`,
         { request: base64Payload },
         {
           headers: {
@@ -124,12 +124,12 @@ async function startServer() {
     const { transactionId } = req.params;
 
     try {
-      const stringToHash = `/pg/v1/status/${MERCHANT_ID}/${transactionId}${SALT_KEY}`;
+      const stringToHash = `/v1/status/${MERCHANT_ID}/${transactionId}${SALT_KEY}`;
       const sha256 = crypto.createHash("sha256").update(stringToHash).digest("hex");
       const xVerify = sha256 + "###" + SALT_INDEX;
 
       const response = await axios.get(
-        `${PHONEPE_HOST_URL}/pg/v1/status/${MERCHANT_ID}/${transactionId}`,
+        `${PHONEPE_HOST_URL}/v1/status/${MERCHANT_ID}/${transactionId}`,
         {
           headers: {
             "Content-Type": "application/json",
