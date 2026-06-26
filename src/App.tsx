@@ -17,6 +17,7 @@ const SettingsPage = lazy(() => import('./components/Settings').then(m => ({ def
 const AnalyticsPage = lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })));
 const UserProfile = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
 const Pricing = lazy(() => import('./components/Pricing').then(m => ({ default: m.Pricing })));
+const HelpPage = lazy(() => import('./components/HelpPage').then(m => ({ default: m.HelpPage })));
 
 import { StockItem, Booking } from './types';
 import { Search, AlertTriangle, TrendingDown, TrendingUp, Boxes, Loader2, LogIn, PackageCheck, ShieldCheck, Box, FileText, Filter, X, Mic, BellRing } from 'lucide-react';
@@ -28,6 +29,7 @@ import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { AiChatbot } from './components/AiChatbot';
+import { ContactUs } from './components/ContactUs';
 import { GPayDialog } from './components/GPayDialog';
 
 enum OperationType {
@@ -270,7 +272,7 @@ export default function App() {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics' | 'profile'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics' | 'profile' | 'help'>('dashboard');
 
   useEffect(() => {
     if (!trialStartedAt || isSubscribed) return;
@@ -1811,6 +1813,8 @@ export default function App() {
             <AnalyticsPage items={items} />
           ) : currentPage === 'profile' ? (
             <UserProfile user={user} onLogout={logout} isSubscribed={isSubscribed} />
+          ) : currentPage === 'help' ? (
+            <HelpPage onPageChange={setCurrentPage} onUpgradeClick={() => setIsGPayDialogOpen(true)} isSubscribed={isSubscribed} />
           ) : (
             <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
           )}
@@ -1886,6 +1890,8 @@ export default function App() {
         onPageChange={setCurrentPage}
         onToggleTheme={setTheme}
       />
+
+      <ContactUs />
 
       <GPayDialog
         isOpen={isGPayDialogOpen}

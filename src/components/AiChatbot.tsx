@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 interface AiChatbotProps {
   items: StockItem[];
   onOpenAddItem: () => void;
-  onPageChange: (page: 'dashboard' | 'settings' | 'analytics' | 'profile') => void;
+  onPageChange: (page: 'dashboard' | 'settings' | 'analytics' | 'profile' | 'help') => void;
   onToggleTheme: (theme: 'light' | 'dark') => void;
 }
 

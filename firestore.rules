@@ -52,6 +52,21 @@ service cloud.firestore {
              (data.get('businessAddress', '') is string) && (data.get('businessAddress', '').size() <= 500);
     }
 
+    function isValidSubscription(data) {
+      return data.keys().hasAll(['status', 'plan', 'subscriptionType', 'autoRenew', 'billingInterval', 'amount', 'nextBillingDate', 'activatedAt', 'updatedAt']) &&
+             data.status is string && data.status.size() <= 100 &&
+             data.plan is string && data.plan.size() <= 100 &&
+             data.subscriptionType is string && data.subscriptionType.size() <= 100 &&
+             data.autoRenew is bool &&
+             data.billingInterval is string && data.billingInterval.size() <= 100 &&
+             data.amount is number && data.amount >= 0 &&
+             data.nextBillingDate is number &&
+             data.activatedAt is number &&
+             data.updatedAt is number &&
+             (data.get('utr', '') is string) && (data.get('utr', '').size() <= 200) &&
+             (data.get('paymentMethod', '') is string) && (data.get('paymentMethod', '').size() <= 100);
+    }
+
     match /stockItems/{itemId} {
       allow get: if isSignedIn() && existing().ownerId == request.auth.uid && isValidId(itemId);
       allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
@@ -83,6 +98,16 @@ service cloud.firestore {
                     request.auth.uid == userId && 
                     isValidUser(incoming()) &&
                     incoming().updatedAt == request.time;
+    }
+
+    match /subscriptions/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && 
+                    request.auth.uid == userId && 
+                    isValidSubscription(incoming());
+      allow update: if isSignedIn() && 
+                    request.auth.uid == userId && 
+                    isValidSubscription(incoming());
     }
   }
 }

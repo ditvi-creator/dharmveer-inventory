@@ -38,6 +38,25 @@
         "updatedAt": { "type": "number" }
       },
       "required": ["fullName", "updatedAt"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Subscription billing details.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "plan": { "type": "string" },
+        "utr": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "subscriptionType": { "type": "string" },
+        "autoRenew": { "type": "boolean" },
+        "billingInterval": { "type": "string" },
+        "amount": { "type": "number" },
+        "nextBillingDate": { "type": "number" },
+        "activatedAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["status", "plan", "subscriptionType", "autoRenew", "billingInterval", "amount", "nextBillingDate", "activatedAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -48,6 +67,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "User profile details"
+    },
+    "/subscriptions/{userId}": {
+      "schema": { "$ref": "#/entities/Subscription" },
+      "description": "Subscription billing details"
     }
   }
 }
