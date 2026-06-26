@@ -28,7 +28,7 @@ import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { AiChatbot } from './components/AiChatbot';
-import { PhonePeDialog } from './components/PhonePeDialog';
+import { GPayDialog } from './components/GPayDialog';
 
 enum OperationType {
   CREATE = 'create',
@@ -264,7 +264,7 @@ export default function App() {
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [trialStartedAt, setTrialStartedAt] = useState<number | null>(null);
   const [activeMerchantTransactionId, setActiveMerchantTransactionId] = useState<string | null>(null);
-  const [isPhonePeDialogOpen, setIsPhonePeDialogOpen] = useState(false);
+  const [isGPayDialogOpen, setIsGPayDialogOpen] = useState(false);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [signupName, setSignupName] = useState('');
@@ -607,7 +607,7 @@ export default function App() {
       setAuthMode('signup');
       return;
     }
-    setIsPhonePeDialogOpen(true);
+    setIsGPayDialogOpen(true);
   };
 
   const handleStartTrial = async () => {
@@ -1424,14 +1424,14 @@ export default function App() {
           isLoggedIn={true}
           isTrialUsed={!!trialStartedAt}
         />
-        <PhonePeDialog
-          isOpen={isPhonePeDialogOpen}
-          onClose={() => setIsPhonePeDialogOpen(false)}
+        <GPayDialog
+          isOpen={isGPayDialogOpen}
+          onClose={() => setIsGPayDialogOpen(false)}
           userId={user?.uid || ''}
           userEmail={user?.email || ''}
           onPaymentSuccess={() => {
             setIsSubscribed(true);
-            setIsPhonePeDialogOpen(false);
+            setIsGPayDialogOpen(false);
             setShowPricing(false);
           }}
         />
@@ -1450,14 +1450,14 @@ export default function App() {
           isLoggedIn={true}
           isTrialUsed={!!trialStartedAt}
         />
-        <PhonePeDialog
-          isOpen={isPhonePeDialogOpen}
-          onClose={() => setIsPhonePeDialogOpen(false)}
+        <GPayDialog
+          isOpen={isGPayDialogOpen}
+          onClose={() => setIsGPayDialogOpen(false)}
           userId={user?.uid || ''}
           userEmail={user?.email || ''}
           onPaymentSuccess={() => {
             setIsSubscribed(true);
-            setIsPhonePeDialogOpen(false);
+            setIsGPayDialogOpen(false);
             setShowPricing(false);
           }}
         />
@@ -1864,14 +1864,14 @@ export default function App() {
         onToggleTheme={setTheme}
       />
 
-      <PhonePeDialog
-        isOpen={isPhonePeDialogOpen}
-        onClose={() => setIsPhonePeDialogOpen(false)}
+      <GPayDialog
+        isOpen={isGPayDialogOpen}
+        onClose={() => setIsGPayDialogOpen(false)}
         userId={user?.uid || ''}
         userEmail={user?.email || ''}
         onPaymentSuccess={() => {
           setIsSubscribed(true);
-          setIsPhonePeDialogOpen(false);
+          setIsGPayDialogOpen(false);
           setShowPricing(false);
         }}
       />

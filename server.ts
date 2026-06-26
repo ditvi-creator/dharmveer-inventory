@@ -114,7 +114,7 @@ async function startServer() {
         merchantId,
         merchantTransactionId: transactionId,
         merchantUserId: userId,
-        amount: (amount || 499) * 100, // paise (₹499 = 49900 paise)
+        amount: (amount || 90) * 100, // paise (₹90 = 9000 paise)
         redirectUrl: `${appBaseUrl}/api/phonepe/callback?userId=${userId}&txnId=${transactionId}`,
         redirectMode: "POST",
         callbackUrl: `${appBaseUrl}/api/phonepe/callback?userId=${userId}&txnId=${transactionId}`,
