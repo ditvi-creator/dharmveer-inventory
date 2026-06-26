@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Mail, Phone, Building2, MapPin, Save, X, Edit3 } from 'lucide-react';
+import { 
+  User, LogOut, Mail, Phone, Building2, MapPin, Save, X, Edit3,
+  ShieldCheck, Sparkles, Calendar, CreditCard
+} from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -8,6 +11,7 @@ import { toast } from 'sonner';
 interface UserProfileProps {
   user: any;
   onLogout: () => void;
+  isSubscribed?: boolean | null;
 }
 
 interface ProfileData {
@@ -17,7 +21,17 @@ interface ProfileData {
   businessAddress: string;
 }
 
-export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
+interface SubscriptionDetails {
+  plan: string;
+  status: string;
+  amount: number;
+  autoRenew: boolean;
+  subscriptionType: string;
+  nextBillingDate: number | null;
+  paymentMethod: string;
+}
+
+export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout, isSubscribed }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -26,6 +40,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
     companyName: '',
     businessAddress: '',
   });
+  const [subDetails, setSubDetails] = useState<SubscriptionDetails | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -49,6 +64,45 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
 
     fetchProfile();
   }, [user]);
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user?.uid || !isSubscribed) return;
+      try {
+        const subRef = doc(db, 'subscriptions', user.uid);
+        const subSnap = await getDoc(subRef);
+        if (subSnap.exists()) {
+          const data = subSnap.data();
+          setSubDetails({
+            plan: data.plan || 'pro',
+            status: data.status || 'active',
+            amount: data.amount || 90,
+            autoRenew: data.autoRenew !== false,
+            subscriptionType: data.subscriptionType || 'automatic',
+            nextBillingDate: data.nextBillingDate || null,
+            paymentMethod: data.paymentMethod || 'gpay'
+          });
+        } else {
+          // Fallback default automatic subscription if user isSubscribed but no subscription doc yet
+          const nextBilling = new Date();
+          nextBilling.setMonth(nextBilling.getMonth() + 1);
+          setSubDetails({
+            plan: 'pro',
+            status: 'active',
+            amount: 90,
+            autoRenew: true,
+            subscriptionType: 'automatic',
+            nextBillingDate: nextBilling.getTime(),
+            paymentMethod: 'gpay'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching subscription:', error);
+      }
+    };
+
+    fetchSubscription();
+  }, [user, isSubscribed]);
 
   if (!user) return null;
 
@@ -173,6 +227,58 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Sidebar Stats/Info */}
             <div className="lg:col-span-1 space-y-6">
+              {isSubscribed && (
+                <div className="p-6 bg-gradient-to-br from-emerald-500/10 via-emerald-600/5 to-transparent rounded-2xl border border-emerald-500/20 shadow-xs animate-fadeIn">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="bg-emerald-500/20 p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400">
+                      <Sparkles className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <h3 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">Pro Subscription</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Billing Plan</p>
+                      <p className="text-sm font-extrabold text-gray-950 dark:text-white flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                        Pro Plan Monthly
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Recurring Amount</p>
+                      <p className="text-sm font-extrabold text-gray-950 dark:text-white flex items-center gap-1.5">
+                        <CreditCard className="w-4 h-4 text-emerald-500" />
+                        ₹90.00 / month
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Renewal Process</p>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                        Automatic Auto-Debit Enabled
+                      </span>
+                    </div>
+
+                    {subDetails?.nextBillingDate && (
+                      <div className="pt-2 border-t border-emerald-500/15">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                          Next Automatic Charge
+                        </p>
+                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                          {new Date(subDetails.nextBillingDate).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                 <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Account Details</h3>
                 <div className="space-y-4">

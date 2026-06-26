@@ -1787,7 +1787,7 @@ export default function App() {
           {currentPage === 'analytics' ? (
             <AnalyticsPage items={items} />
           ) : currentPage === 'profile' ? (
-            <UserProfile user={user} onLogout={logout} />
+            <UserProfile user={user} onLogout={logout} isSubscribed={isSubscribed} />
           ) : (
             <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
           )}
