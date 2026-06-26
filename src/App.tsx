@@ -28,7 +28,6 @@ import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, 
 import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
-import { AiChatbot } from './components/AiChatbot';
 import { ContactUs } from './components/ContactUs';
 import { GPayDialog } from './components/GPayDialog';
 
@@ -1884,13 +1883,6 @@ export default function App() {
         )}
       </Suspense>
       
-      <AiChatbot 
-        items={items}
-        onOpenAddItem={openAddModal}
-        onPageChange={setCurrentPage}
-        onToggleTheme={setTheme}
-      />
-
       <ContactUs />
 
       <GPayDialog

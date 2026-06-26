@@ -1,6 +1,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Check, PackageCheck, ShieldCheck } from 'lucide-react';
+import { 
+  Check, PackageCheck, ShieldCheck, Layers, Activity, 
+  TrendingUp, MapPin, FileText, AlertTriangle, Clock, Headphones 
+} from 'lucide-react';
 
 interface PricingProps {
   onBack: () => void;
@@ -18,14 +21,14 @@ export const Pricing: React.FC<PricingProps> = ({
   isTrialUsed
 }) => {
   const features = [
-    "Unlimited Inventory Items",
-    "Real-time Stock Tracking",
-    "Advanced Analytics & Trends",
-    "Multi-Godown Support",
-    "Professional Challan Generation",
-    "AI-Powered Inventory Assistant",
-    "Low Stock Notifications",
-    "Priority Support"
+    { text: "Unlimited Inventory Items", highlighted: false, icon: Layers },
+    { text: "Real-time Stock Tracking", highlighted: false, icon: Activity },
+    { text: "Advanced Analytics & Trends", highlighted: false, icon: TrendingUp },
+    { text: "Multi-Godown Support", highlighted: false, icon: MapPin },
+    { text: "Professional Challan Generation", highlighted: true, icon: FileText, badge: "Premium" },
+    { text: "Low Stock Notifications", highlighted: true, icon: AlertTriangle, badge: "Smart Alert" },
+    { text: "Product Bookings Reminder", highlighted: true, icon: Clock, badge: "New & Hot" },
+    { text: "Priority Support", highlighted: true, icon: Headphones, badge: "24/7 VIP" }
   ];
 
   return (
@@ -93,15 +96,48 @@ export const Pricing: React.FC<PricingProps> = ({
               </div>
             </div>
 
-            <div className="space-y-4 mb-10">
-              {features.map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
+            <div className="space-y-3 mb-10">
+              {features.map((feature, idx) => {
+                return (
+                  <div 
+                    key={idx} 
+                    className={`flex items-center p-3 rounded-2xl transition-all duration-300 ${
+                      feature.highlighted 
+                        ? 'bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-transparent border border-blue-500/10 dark:border-blue-400/10 shadow-[0_0_15px_rgba(59,130,246,0.08)]' 
+                        : 'border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`flex-shrink-0 w-5 h-5 rounded-full ${
+                        feature.highlighted 
+                          ? 'bg-blue-100 dark:bg-blue-900/30' 
+                          : 'bg-green-100 dark:bg-green-900/20'
+                        } flex items-center justify-center`}
+                      >
+                        <Check className={`w-3 h-3 ${
+                          feature.highlighted ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
+                        }`} />
+                      </div>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[14px] sm:text-[15px] transition-all duration-300 ${
+                            feature.highlighted 
+                              ? 'text-blue-600 dark:text-blue-400 font-extrabold [text-shadow:0_0_8px_rgba(59,130,246,0.5)] dark:[text-shadow:0_0_12px_rgba(96,165,250,0.6)]' 
+                              : 'text-gray-600 dark:text-gray-300 font-semibold'
+                          }`}>
+                            {feature.text}
+                          </span>
+                          {feature.badge && (
+                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 animate-pulse">
+                              {feature.badge}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-gray-600 dark:text-gray-300 text-[15px]">{feature}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <motion.button 
