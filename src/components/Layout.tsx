@@ -7,6 +7,7 @@ import React from 'react';
 import { Package, Plus, FileDown, FileUp, Trash2, LogOut, LayoutDashboard, Settings, LineChart, Sun, Moon, Monitor, User } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 import { useSettingsContext } from '../SettingsContext';
+import { TrialBanner } from './TrialBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,9 @@ interface LayoutProps {
   onDownloadTemplate: () => void;
   currentPage: 'dashboard' | 'settings' | 'analytics' | 'profile';
   onPageChange: (page: 'dashboard' | 'settings' | 'analytics' | 'profile') => void;
+  isSubscribed?: boolean | null;
+  trialStartedAt?: number | null;
+  onUpgradeClick?: () => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -27,15 +31,22 @@ export const Layout: React.FC<LayoutProps> = ({
   onImportCSV,
   onDownloadTemplate,
   currentPage,
-  onPageChange
+  onPageChange,
+  isSubscribed = null,
+  trialStartedAt = null,
+  onUpgradeClick = () => {}
 }) => {
   const { theme, setTheme } = useTheme();
   const { settings } = useSettingsContext();
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] dark:bg-gray-950 text-[#1D1D1B] dark:text-gray-100 font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F3F4F6] dark:bg-gray-950 text-[#1D1D1B] dark:text-gray-100 font-sans transition-colors duration-200 animate-fadeIn">
+      {isSubscribed === false && trialStartedAt && (
+        <TrialBanner trialStartedAt={trialStartedAt} onUpgradeClick={onUpgradeClick} />
+      )}
       {/* Top Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30 transition-colors duration-200">
+
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
           <div className="py-4 sm:h-18 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-10">

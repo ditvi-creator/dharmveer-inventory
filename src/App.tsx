@@ -272,6 +272,23 @@ export default function App() {
   const [signupPassword, setSignupPassword] = useState('');
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'settings' | 'analytics' | 'profile'>('dashboard');
 
+  useEffect(() => {
+    if (!trialStartedAt || isSubscribed) return;
+
+    const checkTrial = () => {
+      const trialDurationMs = 72 * 60 * 60 * 1000; // 72 hours
+      if (Date.now() - trialStartedAt > trialDurationMs) {
+        setIsTrialExpired(true);
+      } else {
+        setIsTrialExpired(false);
+      }
+    };
+
+    checkTrial();
+    const interval = setInterval(checkTrial, 10000); // Check every 10 seconds
+    return () => clearInterval(interval);
+  }, [trialStartedAt, isSubscribed]);
+
   const [godowns, setGodowns] = useState<{id: string, name: string}[]>(() => {
     const saved = localStorage.getItem('app_godowns');
     if (saved) {
@@ -566,9 +583,11 @@ export default function App() {
             : userData.trialStartedAt.toMillis();
           setTrialStartedAt(startTime);
           
-          const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+          const threeDaysInMs = 3 * 24 * 60 * 60 * 1000; // 72 hours
           if (Date.now() - startTime > threeDaysInMs) {
             setIsTrialExpired(true);
+          } else {
+            setIsTrialExpired(false);
           }
         } else if (!userData.isSubscribed) {
           // Document exists but no trialStartedAt and not subscribed, start trial now
@@ -578,24 +597,25 @@ export default function App() {
             updatedAt: serverTimestamp()
           });
           setTrialStartedAt(now);
+          setIsTrialExpired(false);
         }
       } else {
-        // New user or no profile, set as subscribed by default and start trial
+        // New user or no profile: do NOT activate pro plan automatically, set isSubscribed: false, and start 72-hour trial
         const now = Date.now();
         await setDoc(userRef, { 
           fullName: auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Member',
-          isSubscribed: true,
+          isSubscribed: false,
           trialStartedAt: serverTimestamp(),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        setIsSubscribed(true);
+        setIsSubscribed(false);
         setTrialStartedAt(now);
+        setIsTrialExpired(false);
       }
     } catch (err) {
       console.error("Error fetching subscription status", err);
-      // For safety in this tool, I'll default to true if it fails or just false. 
-      // User requested "only subscribed user can use". I'll set false if check fails.
+      // Default to false if check fails for maximum security
       setIsSubscribed(false);
     }
   };
@@ -1474,6 +1494,9 @@ export default function App() {
       onExportCSV={exportCSV}
       currentPage={currentPage}
       onPageChange={setCurrentPage}
+      isSubscribed={isSubscribed}
+      trialStartedAt={trialStartedAt}
+      onUpgradeClick={() => setIsGPayDialogOpen(true)}
     >
       <Toaster position="top-right" />
       
