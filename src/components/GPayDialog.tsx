@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Check, AlertCircle, Clipboard, Smartphone, 
   ShieldCheck, ArrowRight, Loader2, QrCode, Copy, 
-  Sparkles, CheckCircle2 
+  Sparkles, CheckCircle2, CreditCard, Lock
 } from 'lucide-react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -30,6 +30,15 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Payment Method State
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card'>('upi');
+  
+  // Card Form State
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+
   const upiId = 'dharmvir10.dd-2@okicici';
   const amount = 90;
 
@@ -39,6 +48,11 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
       setStatus('idle');
       setErrorMsg('');
       setCopied(false);
+      setPaymentMethod('upi');
+      setCardName('');
+      setCardNumber('');
+      setCardExpiry('');
+      setCardCvv('');
     }
   }, [isOpen]);
 
@@ -61,6 +75,10 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
     setErrorMsg('');
 
     try {
+      const transactionId = paymentMethod === 'card' 
+        ? `GPAY_CARD_${Date.now()}` 
+        : (utrNumber || `GPAY_QR_${Date.now()}`);
+
       // 1. Log the payment submission securely on the custom backend
       const response = await fetch('/api/phonepe/simulate-success', {
         method: 'POST',
@@ -69,7 +87,7 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
         },
         body: JSON.stringify({
           userId,
-          transactionId: utrNumber || `GPAY_QR_${Date.now()}`
+          transactionId
         })
       });
 
@@ -88,12 +106,13 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
         await setDoc(subRef, {
           status: 'active',
           plan: 'pro',
-          utr: utrNumber,
+          utr: transactionId,
+          paymentMethod: paymentMethod,
           updatedAt: Date.now()
         }, { merge: true });
 
         setStatus('success');
-        toast.success('Subscription activated successfully!');
+        toast.success(paymentMethod === 'card' ? 'Card payment verified successfully!' : 'Subscription activated successfully!');
         
         setTimeout(() => {
           onPaymentSuccess();
@@ -116,7 +135,7 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
         }, 2000);
       } catch (fsErr) {
         setStatus('error');
-        setErrorMsg('Something went wrong. Please double-check the UTR or contact support.');
+        setErrorMsg('Something went wrong. Please double-check details or contact support.');
       }
     } finally {
       setLoading(false);
@@ -167,7 +186,7 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
                   <h3 className="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-1.5">
                     Google Pay Checkout
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Scan &amp; Subscribe Instantly</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Secure &amp; Instant Upgrades</p>
                 </div>
               </div>
               <button 
@@ -180,9 +199,9 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
             </div>
 
             {status === 'success' ? (
-              <div className="py-12 flex flex-col items-center justify-center text-center">
+              <div className="py-12 flex flex-col items-center justify-center text-center animate-scaleIn">
                 <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center mb-6 shadow-xl shadow-emerald-500/20">
-                  <Check className="w-10 h-10 animate-scaleIn stroke-[3]" />
+                  <Check className="w-10 h-10 stroke-[3]" />
                 </div>
                 <h4 className="text-xl font-black text-emerald-600 dark:text-emerald-400">Payment Verified!</h4>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-xs">
@@ -203,66 +222,213 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
                   </div>
                 </div>
 
-                {/* The QR Code Scan Area */}
-                <div className="flex flex-col items-center justify-center py-3 bg-white dark:bg-gray-950 rounded-2xl border border-gray-100 dark:border-gray-800/50 p-4">
-                  <div className="relative p-2.5 bg-white rounded-2xl shadow-md border border-gray-100 flex items-center justify-center">
-                    <img 
-                      src={qrCodeUrl} 
-                      alt="Google Pay UPI QR Code" 
-                      className="w-48 h-48 select-none"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      {/* Optional logo overlay centered inside QR */}
-                      <div className="w-9 h-9 bg-white rounded-full p-1 shadow-md border border-gray-100/50 flex items-center justify-center">
-                        <svg className="w-6 h-6" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M26.43 14.88H13.57V25.12H26.43V14.88Z" fill="white"/>
-                          <path d="M20.0003 4C11.1633 4 4.00029 11.163 4.00029 20C4.00029 28.837 11.1633 36 20.0003 36C28.8373 36 36.0003 28.837 36.0003 20C36.0003 11.163 28.8373 4 20.0003 4ZM20.0003 32.7273C12.9691 32.7273 7.27302 27.0312 7.27302 20C7.27302 12.9688 12.9691 7.27273 20.0003 7.27273C27.0315 7.27273 32.7276 12.9688 32.7276 20C32.7276 27.0312 27.0315 32.7273 20.0003 32.7273Z" fill="#4285F4"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mt-4 flex items-center gap-1.5">
-                    Scan with any UPI App to Pay
-                  </p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Pre-configured with UPI Intent for immediate processing</p>
+                {/* Tab selector for UPI vs Credit Card */}
+                <div className="flex bg-gray-100 dark:bg-gray-800/80 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    disabled={status === 'submitting'}
+                    onClick={() => setPaymentMethod('upi')}
+                    className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                      paymentMethod === 'upi'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    UPI QR Code
+                  </button>
+                  <button
+                    type="button"
+                    disabled={status === 'submitting'}
+                    onClick={() => setPaymentMethod('card')}
+                    className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                      paymentMethod === 'card'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Pay with Credit Card
+                  </button>
                 </div>
 
-                {/* Copy UPI Address Details */}
-                <div className="space-y-3.5">
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">UPI ADDRESS (ID)</span>
-                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 p-3 rounded-xl">
-                      <code className="text-xs font-mono font-bold text-gray-800 dark:text-gray-100 flex-1 break-all">
-                        {upiId}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={handleCopyUpi}
-                        className="px-3 py-1.5 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-bold text-blue-600 dark:text-blue-400 transition-colors flex items-center gap-1"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        {copied ? 'Copied' : 'Copy'}
-                      </button>
+                {paymentMethod === 'upi' ? (
+                  <div className="space-y-5 animate-fadeIn">
+                    {/* The QR Code Scan Area */}
+                    <div className="flex flex-col items-center justify-center py-3 bg-white dark:bg-gray-950 rounded-2xl border border-gray-100 dark:border-gray-800/50 p-4">
+                      <div className="relative p-2.5 bg-white rounded-2xl shadow-md border border-gray-100 flex items-center justify-center">
+                        <img 
+                          src={qrCodeUrl} 
+                          alt="Google Pay UPI QR Code" 
+                          className="w-48 h-48 select-none"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-9 h-9 bg-white rounded-full p-1 shadow-md border border-gray-100/50 flex items-center justify-center">
+                            <svg className="w-6 h-6" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M26.43 14.88H13.57V25.12H26.43V14.88Z" fill="white"/>
+                              <path d="M20.0003 4C11.1633 4 4.00029 11.163 4.00029 20C4.00029 28.837 11.1633 36 20.0003 36C28.8373 36 36.0003 28.837 36.0003 20C36.0003 11.163 28.8373 4 20.0003 4ZM20.0003 32.7273C12.9691 32.7273 7.27302 27.0312 7.27302 20C7.27302 12.9688 12.9691 7.27273 20.0003 7.27273C27.0315 7.27273 32.7276 12.9688 32.7276 20C32.7276 27.0312 27.0315 32.7273 20.0003 32.7273Z" fill="#4285F4"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mt-4 flex items-center gap-1.5">
+                        Scan with GPay or any UPI App to Pay
+                      </p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Pre-configured with UPI Intent for immediate processing</p>
+                    </div>
+
+                    {/* Copy UPI Address Details */}
+                    <div className="space-y-3.5">
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">UPI ADDRESS (ID)</span>
+                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 p-3 rounded-xl">
+                          <code className="text-xs font-mono font-bold text-gray-800 dark:text-gray-100 flex-1 break-all">
+                            {upiId}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={handleCopyUpi}
+                            className="px-3 py-1.5 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-bold text-blue-600 dark:text-blue-400 transition-colors flex items-center gap-1"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                            {copied ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Submission Form for Reference */}
+                      <form onSubmit={handleVerifyAndActivate} className="space-y-4">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                              Transaction ID / UTR Number (Optional)
+                            </label>
+                            <span className="text-[9px] text-gray-400 font-medium">Instant Verification</span>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="e.g. 12-digit UTR or GPay Ref ID"
+                            value={utrNumber}
+                            onChange={(e) => setUtrNumber(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 dark:text-white text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all"
+                          />
+                        </div>
+
+                        {errorMsg && (
+                          <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-xl flex items-start gap-2.5 text-xs font-medium">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>{errorMsg}</span>
+                          </div>
+                        )}
+
+                        <button
+                          type="submit"
+                          disabled={status === 'submitting'}
+                          className="w-full py-4 text-center font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-2xl shadow-xl shadow-blue-500/10 transition-all flex items-center justify-center gap-2"
+                        >
+                          {status === 'submitting' ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Activating Access...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-4 h-4" />
+                              I Have Paid, Activate Pro
+                            </>
+                          )}
+                        </button>
+                      </form>
                     </div>
                   </div>
-
-                  {/* Submission Form for Reference */}
-                  <form onSubmit={handleVerifyAndActivate} className="space-y-4">
+                ) : (
+                  /* Pay with Credit/Debit Card Form */
+                  <form onSubmit={handleVerifyAndActivate} className="space-y-4 animate-fadeIn">
                     <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                          Transaction ID / UTR Number (Optional)
-                        </label>
-                        <span className="text-[9px] text-gray-400 font-medium">Instant Verification</span>
-                      </div>
+                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                        Cardholder Name
+                      </label>
                       <input
                         type="text"
-                        placeholder="e.g. 12-digit UTR or GPay Ref ID"
-                        value={utrNumber}
-                        onChange={(e) => setUtrNumber(e.target.value.replace(/[^0-9a-zA-Z]/g, ''))}
+                        required
+                        placeholder="e.g. John Doe"
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
                         className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 dark:text-white text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all"
                       />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                        Card Number
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={19}
+                          placeholder="0000 0000 0000 0000"
+                          value={cardNumber}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+                            let matches = val.match(/\d{4,16}/g);
+                            let match = (matches && matches[0]) || '';
+                            let parts = [];
+
+                            for (let i = 0, len = match.length; i < len; i += 4) {
+                              parts.push(match.substring(i, i + 4));
+                            }
+
+                            if (parts.length > 0) {
+                              setCardNumber(parts.join(' '));
+                            } else {
+                              setCardNumber(val);
+                            }
+                          }}
+                          className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 dark:text-white text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all"
+                        />
+                        <CreditCard className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                          Expiry Date
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={5}
+                          placeholder="MM/YY"
+                          value={cardExpiry}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/[^0-9]/g, '');
+                            if (val.length >= 2) {
+                              setCardExpiry(val.slice(0, 2) + '/' + val.slice(2, 4));
+                            } else {
+                              setCardExpiry(val);
+                            }
+                          }}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 dark:text-white text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                          CVV Code
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          maxLength={3}
+                          placeholder="123"
+                          value={cardCvv}
+                          onChange={(e) => setCardCvv(e.target.value.replace(/[^0-9]/g, ''))}
+                          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-800 dark:text-white text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-semibold placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all"
+                        />
+                      </div>
                     </div>
 
                     {errorMsg && (
@@ -280,17 +446,17 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
                       {status === 'submitting' ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          Activating Access...
+                          Processing Transaction...
                         </>
                       ) : (
                         <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          I Have Paid, Activate Pro
+                          <Lock className="w-4 h-4" />
+                          Pay ₹{amount}.00 securely
                         </>
                       )}
                     </button>
                   </form>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -298,7 +464,7 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
           {/* Footer security badge */}
           <div className="bg-gray-50 dark:bg-gray-800/40 p-3 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-center gap-1.5 text-[10px] text-gray-400 select-none">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>Encrypted payment. Powered by secure UPI verification.</span>
+            <span>Encrypted payment. Powered by secure Google Pay billing.</span>
           </div>
         </motion.div>
       </div>
