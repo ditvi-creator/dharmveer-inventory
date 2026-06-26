@@ -66,7 +66,7 @@ export const StockTable: React.FC<StockTableProps> = ({
   trialStartedAt,
   isSubscribed
 }) => {
-  const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}];
+  const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}];
   const { settings } = useSettingsContext();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
@@ -128,7 +128,7 @@ export const StockTable: React.FC<StockTableProps> = ({
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800 min-w-[120px] sm:min-w-[200px]">Item Name</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Size</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Unit</th>
-              <th colSpan={activeGodowns.length} className="px-1 py-1 sm:py-2 text-center text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-r border-gray-100 dark:border-gray-800">Opening Stock</th>
+              <th colSpan={activeGodowns.length} className="px-1 py-1 sm:py-2 text-center text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-r border-gray-100 dark:border-gray-800">GODOWN</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">In</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Out</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Bal</th>
@@ -349,7 +349,13 @@ export const StockTable: React.FC<StockTableProps> = ({
                       <td className="px-1 sm:px-4 py-2 sm:py-4 text-right">
                         <div className="flex items-center justify-end gap-1 sm:gap-2 text-gray-400 dark:text-gray-400">
                           <button onClick={() => onOpenHistory(item)} className="p-1 sm:p-1.5 text-gray-400 dark:text-gray-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/20 rounded-md transition-colors" title="View History">
-                            <History className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <History 
+                              className={index === 0 ? (activeGodowns.length === 1 ? "w-[30px] h-[30px]" : "w-[20px] h-[20px]") : "w-3.5 h-3.5 sm:w-4 sm:h-4"} 
+                              style={index === 0 ? { 
+                                width: activeGodowns.length === 1 ? '30px' : '20px', 
+                                height: activeGodowns.length === 1 ? '30px' : '20px' 
+                              } : undefined} 
+                            />
                           </button>
                           <button onClick={() => onEditItem(item)} className="p-1 sm:p-1.5 text-gray-400 dark:text-gray-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/20 rounded-md transition-colors" title="Edit Item">
                             <PenLine className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

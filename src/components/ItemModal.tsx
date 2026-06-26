@@ -22,7 +22,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   godowns = [],
   showImageUpload = true
 }) => {
-  const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}];
+  const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}];
 
   const getDefaultFormData = () => ({
     name: '',

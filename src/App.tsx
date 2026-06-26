@@ -298,8 +298,7 @@ export default function App() {
       } catch (e) {}
     }
     return [
-      { id: 'MP', name: 'MP' },
-      { id: 'KL', name: 'KL' }
+      { id: 'MP', name: 'MP' }
     ];
   });
   const [items, setItems] = useState<StockItem[]>([]);
@@ -512,16 +511,44 @@ export default function App() {
   };
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const itemsRef = useRef<StockItem[]>([]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-        openAddModal();
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
+      const key = e.key.toLowerCase();
+      
+      if (e.ctrlKey) {
+        if (key === 'i') {
+          e.preventDefault();
+          openAddModal();
+        } else if (key === 's') {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+        } else if (key === 'b') {
+          e.preventDefault();
+          const list = itemsRef.current;
+          if (list && list.length > 0) {
+            setSelectedItemForBookings(list[0]);
+          }
+        } else if (key === 'h') {
+          e.preventDefault();
+          const list = itemsRef.current;
+          if (list && list.length > 0) {
+            setSelectedItemForHistory(list[0]);
+          }
+        } else if (key === 'e') {
+          e.preventDefault();
+          const list = itemsRef.current;
+          if (list && list.length > 0) {
+            openEditModal(list[0]);
+          }
+        } else if (key === 'm') {
+          e.preventDefault();
+          const list = itemsRef.current;
+          if (list && list.length > 0) {
+            setSelectedItemForBookings(list[0]);
+          }
+        }
       }
     };
 
@@ -989,6 +1016,10 @@ export default function App() {
 
     return result;
   }, [items, searchTerm, sortBy, statusFilter, dateFilterStart, dateFilterEnd, bookingFilter, partyFilter, categoryFilter]);
+
+  useEffect(() => {
+    itemsRef.current = filteredAndSortedItems;
+  }, [filteredAndSortedItems]);
 
   const stats = useMemo(() => {
     const totalItems = items.length;

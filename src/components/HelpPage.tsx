@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { 
   HelpCircle, BookOpen, Search, Sparkles, MessageSquare, 
   ArrowRight, CheckCircle2, ChevronDown, Compass, Mail,
-  ShieldAlert, Star, Terminal, Zap, ShieldCheck
+  ShieldAlert, Star, Terminal, Zap, ShieldCheck, Keyboard
 } from 'lucide-react';
 
 interface HelpPageProps {
@@ -249,6 +249,66 @@ export const HelpPage: React.FC<HelpPageProps> = ({
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Try clearing search filters or entering different keywords.</p>
           </div>
         )}
+      </div>
+
+      {/* Keyboard Shortcuts Section */}
+      <div className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900/60 dark:to-slate-900/20 rounded-3xl p-6 sm:p-10 border border-gray-150 dark:border-gray-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-gray-200/60 dark:border-gray-800/60 pb-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              <Keyboard className="w-3.5 h-3.5" />
+              <span>Pro Power-User Tools</span>
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+              Keyboard Shortcuts & Productivity
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+              Speed up your warehouse workflow. Trigger key operations hands-free from anywhere.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-indigo-50/50 dark:bg-indigo-950/20 px-4 py-2.5 rounded-2xl border border-indigo-100/50 dark:border-indigo-900/30">
+            <Zap className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
+            <span className="text-xs text-indigo-900 dark:text-indigo-300 font-bold">Press modifiers together with the letters below.</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { keys: ['Ctrl', 'I'], action: 'Add Material Row', desc: 'Instantly opens the modal to register a new stock item with size, unit, and location.' },
+            { keys: ['Ctrl', 'S'], action: 'Focus Search Bar', desc: 'Auto-focuses the global search input so you can instantly filter by name, party, or brand.' },
+            { keys: ['Ctrl', 'B'], action: 'Open Bookings Dialog', desc: 'Directly opens active booking quantities, schedules, and transporter details for the first list item.' },
+            { keys: ['Ctrl', 'H'], action: 'View Item History', desc: 'Displays full historical transaction logs, edit history, and stock ledger for the top item row.' },
+            { keys: ['Ctrl', 'E'], action: 'Edit Material Row', desc: 'Loads the edit configuration and adjustments menu for the top visible row item instantly.' },
+            { keys: ['Ctrl', 'M'], action: 'Manage Item Bookings', desc: 'Opens active booking management popover for allocating stock, delivery alerts, and alerts.' },
+          ].map((shortcut, sIdx) => (
+            <div 
+              key={sIdx}
+              className="p-4 sm:p-5 bg-white dark:bg-gray-900/50 rounded-2xl border border-gray-150 dark:border-gray-800 flex flex-col justify-between gap-4 hover:border-indigo-500/30 transition-all group"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    {shortcut.action}
+                  </h4>
+                  <div className="flex items-center gap-1">
+                    {shortcut.keys.map((k, kIdx) => (
+                      <kbd 
+                        key={kIdx}
+                        className="px-2 py-1 rounded-md text-[10px] font-black uppercase bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-xs"
+                      >
+                        {k}
+                      </kbd>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                  {shortcut.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* FAQs Section */}

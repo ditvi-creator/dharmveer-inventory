@@ -55,7 +55,7 @@ export const ContactUs: React.FC = () => {
   return (
     <>
       {/* Floating Button */}
-      <div className="fixed bottom-6 right-24 z-50">
+      <div className="fixed bottom-6 right-6 z-50">
         <motion.button
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
@@ -78,7 +78,7 @@ export const ContactUs: React.FC = () => {
       {/* Floating Contact Form Popover */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-24 z-50 flex items-center justify-center p-4 sm:p-0 pointer-events-none">
+          <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 z-50 flex items-center justify-center p-4 sm:p-0 pointer-events-none">
             {/* Backdrop overlay for mobile screen view */}
             <div className="fixed inset-0 bg-black/40 backdrop-blur-xs sm:hidden pointer-events-auto" onClick={() => setIsOpen(false)} />
 

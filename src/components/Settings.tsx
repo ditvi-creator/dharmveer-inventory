@@ -14,7 +14,7 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ onClearData, godowns = [], setGodowns }) => {
-  const [localGodowns, setLocalGodowns] = useState<Godown[]>(godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}, {id: 'KL', name: 'KL'}]);
+  const [localGodowns, setLocalGodowns] = useState<Godown[]>(godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}]);
   const [newGodownName, setNewGodownName] = useState('');
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'appearance' | 'data' | 'challan'>('general');
   const { settings, updateSettings } = useSettingsContext();
