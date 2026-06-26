@@ -5,8 +5,18 @@ import {
   CheckCircle, ArrowRight, MessageCircle, AlertCircle
 } from 'lucide-react';
 
-export const ContactUs: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface ContactUsProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const ContactUs: React.FC<ContactUsProps> = ({ isOpen: propIsOpen, onOpenChange }) => {
+  const [localIsOpen, setLocalIsOpen] = useState(false);
+  const isOpen = propIsOpen !== undefined ? propIsOpen : localIsOpen;
+  const setIsOpen = (val: boolean) => {
+    setLocalIsOpen(val);
+    onOpenChange?.(val);
+  };
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');

@@ -5,12 +5,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { useSettingsContext } from '../SettingsContext';
 import { TrialCountdown } from './TrialCountdown';
+import { BulkPrintLabelsModal } from './BulkPrintLabelsModal';
+import { BulkUpdateModal } from './BulkUpdateModal';
 
 interface StockTableProps {
   items: StockItem[];
   godowns?: Godown[]; // Added safely
   onEditItem: (item: StockItem) => void;
   onUpdateItem: (id: string, updates: Partial<StockItem>) => void;
+  onBulkUpdateItem: (ids: string[], updates: Partial<StockItem>) => Promise<void> | void;
   onDeleteItem: (id: string) => void;
   onOpenBookings: (item: StockItem) => void;
   onOpenHistory: (item: StockItem) => void;
@@ -59,6 +62,7 @@ export const StockTable: React.FC<StockTableProps> = ({
   godowns = [],
   onEditItem, 
   onUpdateItem, 
+  onBulkUpdateItem,
   onDeleteItem, 
   onOpenBookings,
   onOpenHistory,
@@ -69,6 +73,11 @@ export const StockTable: React.FC<StockTableProps> = ({
   const activeGodowns = godowns.length > 0 ? godowns : [{id: 'MP', name: 'MP'}];
   const { settings } = useSettingsContext();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
+
+  const selectedItems = items.filter(item => selectedItemIds.includes(item.id));
   
   return (
     <div className="flex flex-col">
@@ -78,6 +87,54 @@ export const StockTable: React.FC<StockTableProps> = ({
           <TrialCountdown trialStartedAt={trialStartedAt} />
         </div>
       )}
+
+      {/* Floating Selection Banner */}
+      <AnimatePresence>
+        {selectedItemIds.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -15, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -15, scale: 0.98 }}
+            className="mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-800 text-white p-4 rounded-2xl shadow-lg shadow-blue-500/10 border border-blue-500/30 flex flex-col lg:flex-row items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-white/10 rounded-xl border border-white/20 shrink-0">
+                <PenLine className="w-5 h-5 text-blue-100" />
+              </div>
+              <div className="text-center sm:text-left">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight block">
+                  {selectedItemIds.length} Materials Selected
+                </span>
+                <span className="text-xs text-blue-100 font-medium">
+                  Perform bulk operations like assigning categories, units, reorder levels, or printing labels.
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-center sm:justify-end">
+              <button
+                onClick={() => setSelectedItemIds([])}
+                className="px-4 py-2 text-xs font-bold text-white/95 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+              >
+                Clear Selection
+              </button>
+              <button
+                onClick={() => setIsBulkUpdateModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 text-white font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all"
+              >
+                <PenLine className="w-4 h-4" />
+                <span>Bulk Update</span>
+              </button>
+              <button
+                onClick={() => setIsPrintModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-white text-blue-600 hover:bg-blue-50 font-black text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-md shadow-black/5 transition-all"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Bulk Print Labels</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
       <AnimatePresence>
@@ -121,6 +178,21 @@ export const StockTable: React.FC<StockTableProps> = ({
           <thead>
             {/* ... table head ... */}
             <tr className="border-b border-gray-200 dark:border-gray-700">
+              {/* Select All Checkbox */}
+              <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 w-10 sm:w-12 text-center border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/10">
+                <input 
+                  type="checkbox" 
+                  checked={items.length > 0 && selectedItemIds.length === items.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedItemIds(items.map(item => item.id));
+                    } else {
+                      setSelectedItemIds([]);
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+              </th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-8 sm:w-12 border-r border-gray-100 dark:border-gray-800 italic">#</th>
               {settings.showProductImages && (
                 <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800 w-12 sm:w-20">Image</th>
@@ -131,9 +203,9 @@ export const StockTable: React.FC<StockTableProps> = ({
               <th colSpan={activeGodowns.length} className="px-1 py-1 sm:py-2 text-center text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-r border-gray-100 dark:border-gray-800">GODOWN</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">In</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Out</th>
-              <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Bal</th>
+              <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Balance</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Min</th>
-              <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Book</th>
+              <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Bookings</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-r border-gray-100 dark:border-gray-800">Party Name</th>
               <th rowSpan={2} className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
             </tr>
@@ -147,7 +219,7 @@ export const StockTable: React.FC<StockTableProps> = ({
             <AnimatePresence>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={11 + activeGodowns.length + (settings.showProductImages ? 1 : 0)} className="px-4 py-16 text-center text-gray-400 dark:text-gray-400 text-sm italic">
+                  <td colSpan={12 + activeGodowns.length + (settings.showProductImages ? 1 : 0)} className="px-4 py-16 text-center text-gray-400 dark:text-gray-400 text-sm italic">
                     No records found. Click "Add Item" to begin.
                   </td>
                 </tr>
@@ -160,10 +232,29 @@ export const StockTable: React.FC<StockTableProps> = ({
                       key={item.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                  transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
+                      transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
                       exit={{ opacity: 0 }}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group ${isLowStock ? 'bg-red-50 dark:bg-red-900/30' : ''}`}
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group ${
+                        isLowStock ? 'bg-red-50 dark:bg-red-900/20' : ''
+                      } ${
+                        selectedItemIds.includes(item.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
+                      }`}
                     >
+                      {/* Checkbox cell */}
+                      <td className="px-1 sm:px-4 py-2 sm:py-4 border-r border-gray-50 dark:border-gray-800/50 text-center">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedItemIds.includes(item.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedItemIds(prev => [...prev, item.id]);
+                            } else {
+                              setSelectedItemIds(prev => prev.filter(id => id !== item.id));
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                      </td>
                       <td className="px-1 sm:px-4 py-2 sm:py-4 text-[10px] sm:text-xs text-gray-400 dark:text-gray-400 border-r border-gray-50 dark:border-gray-800/50 italic relative">
                         {index + 1}
                         {isLowStock && (
@@ -374,6 +465,23 @@ export const StockTable: React.FC<StockTableProps> = ({
         </table>
       </div>
     </div>
+
+    <AnimatePresence>
+      {isPrintModalOpen && (
+        <BulkPrintLabelsModal 
+          selectedItems={selectedItems} 
+          onClose={() => setIsPrintModalOpen(false)} 
+        />
+      )}
+      {isBulkUpdateModalOpen && (
+        <BulkUpdateModal
+          selectedItems={selectedItems}
+          allItems={items}
+          onClose={() => setIsBulkUpdateModalOpen(false)}
+          onBulkUpdate={onBulkUpdateItem}
+        />
+      )}
+    </AnimatePresence>
     </div>
   );
 };

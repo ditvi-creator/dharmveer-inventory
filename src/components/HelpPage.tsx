@@ -10,12 +10,14 @@ interface HelpPageProps {
   onPageChange: (page: 'dashboard' | 'settings' | 'analytics' | 'profile' | 'help') => void;
   onUpgradeClick?: () => void;
   isSubscribed?: boolean | null;
+  onContactSupportClick?: () => void;
 }
 
 export const HelpPage: React.FC<HelpPageProps> = ({ 
   onPageChange, 
   onUpgradeClick = () => {},
-  isSubscribed 
+  isSubscribed,
+  onContactSupportClick
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'inventory' | 'billing' | 'docs'>('all');
@@ -56,6 +58,40 @@ export const HelpPage: React.FC<HelpPageProps> = ({
       ],
       primaryAction: {
         label: 'View Stock Records',
+        onClick: () => onPageChange('dashboard')
+      }
+    },
+    {
+      id: 'bulk-labels',
+      category: 'stock',
+      title: 'Bulk Printable Barcodes & Storage Labels',
+      subtitle: 'Select multiple products to design and print high-resolution sticker grids instantly.',
+      description: 'Streamline your physical warehouse tracking with Stockify\'s custom sticker printer. Click the checkboxes next to any items on your dashboard to select them. A floating blueprint bar will appear, letting you open the Label Builder. Customize templates, sizing, column layouts, custom branding headers, and toggle barcodes/QR codes dynamically before sending to your standard printer or exporting to PDF.',
+      bullets: [
+        'Supports Avery multi-label sticker sheets with customizable 1, 2, 3, or 4-column layout grids.',
+        'Choose from 4 professional themes: Warehouse Tags, Industrial Labels, Specification Cards, and Minimalist QR Tags.',
+        'High-resolution vector SVG barcodes and QR codes generated on-the-fly.',
+        'Real-time design preview reflecting changes in sizing, preferred partner, and stock counts immediately.'
+      ],
+      primaryAction: {
+        label: 'Select Items to Print',
+        onClick: () => onPageChange('dashboard')
+      }
+    },
+    {
+      id: 'bulk-updates',
+      category: 'stock',
+      title: 'Bulk Updates & Smart Multi-Row Assignments',
+      subtitle: 'Re-assign categories, units, and safety stock levels for multiple items at once.',
+      description: 'Avoid repetitive editing tasks with our smart Bulk Update engine. Simply click the checkboxes next to the items on your dashboard to select them, then click "Bulk Update" in the floating action bar. A unified control panel will open, allowing you to selectively assign category/brand associations, packaging units, and reorder alerts in a single batch.',
+      bullets: [
+        'Atomically execute multi-row changes via secure Firestore writeBatch operations.',
+        'Intelligent checkboxes: Only apply updates to specific attributes you actively select.',
+        'Auto-completion: Quickly choose from existing categories/brands to maintain dataset consistency.',
+        'Dynamic alerts: If reorder safety thresholds are set above current balances, low stock warnings are immediately refreshed.'
+      ],
+      primaryAction: {
+        label: 'Bulk Edit Items',
         onClick: () => onPageChange('dashboard')
       }
     },
@@ -367,13 +403,13 @@ export const HelpPage: React.FC<HelpPageProps> = ({
           </p>
         </div>
 
-        <a 
-          href="mailto:support@stockify.io" 
-          className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-extrabold text-xs px-5 py-3 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 shrink-0 active:scale-95 transition-all"
+        <button 
+          onClick={() => onContactSupportClick?.()}
+          className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-extrabold text-xs px-5 py-3 rounded-xl shadow-xs border border-gray-200 dark:border-gray-700 shrink-0 active:scale-95 transition-all cursor-pointer"
         >
           <Mail className="w-4 h-4 text-emerald-500" />
           <span>Contact Support</span>
-        </a>
+        </button>
       </div>
     </div>
   );

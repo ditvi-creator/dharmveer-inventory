@@ -266,6 +266,7 @@ export default function App() {
   const [trialStartedAt, setTrialStartedAt] = useState<number | null>(null);
   const [activeMerchantTransactionId, setActiveMerchantTransactionId] = useState<string | null>(null);
   const [isGPayDialogOpen, setIsGPayDialogOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [signupName, setSignupName] = useState('');
@@ -894,6 +895,62 @@ export default function App() {
     } catch (err) {
       setItems(previousItems);
       handleFirestoreError(err, OperationType.UPDATE, `stockItems/${id}`);
+    }
+  };
+
+  const bulkUpdateItems = async (ids: string[], updates: Partial<StockItem>) => {
+    if (!user || ids.length === 0) return;
+
+    const previousItems = [...items];
+    const finalUpdates = {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    };
+
+    // Optimistically update local state
+    setItems(prev =>
+      prev.map(item => (ids.includes(item.id) ? { ...item, ...finalUpdates } : item))
+    );
+
+    // Dynamic low stock alerts if reorderLevel is changed
+    if (updates.reorderLevel !== undefined) {
+      const newLevel = Number(updates.reorderLevel);
+      items.forEach(item => {
+        if (ids.includes(item.id)) {
+          const currentBalance = item.balance || 0;
+          if (currentBalance <= newLevel && (item.balance || 0) > (item.reorderLevel || 0)) {
+            toast.warning(`Low Stock Alert: ${item.name}`, {
+              description: `Balance is ${currentBalance} (New Reorder level: ${newLevel})`,
+            });
+          }
+        }
+      });
+    }
+
+    try {
+      const chunks = [];
+      let batch = writeBatch(db);
+      let count = 0;
+
+      for (const id of ids) {
+        const docRef = doc(db, 'stockItems', id);
+        batch.update(docRef, finalUpdates);
+        count++;
+        if (count === 500) {
+          chunks.push(batch);
+          batch = writeBatch(db);
+          count = 0;
+        }
+      }
+      if (count > 0) chunks.push(batch);
+
+      for (const chunk of chunks) {
+        await chunk.commit();
+      }
+      toast.success(`Successfully updated ${ids.length} item(s) in bulk.`);
+    } catch (err) {
+      setItems(previousItems);
+      handleFirestoreError(err, OperationType.UPDATE, `stockItems (bulk update)`);
     }
   };
 
@@ -1829,6 +1886,7 @@ export default function App() {
             items={settings.itemsPerPage === 'all' ? filteredAndSortedItems : filteredAndSortedItems.slice(0, parseInt(settings.itemsPerPage) || 10)} 
             onEditItem={openEditModal}
             onUpdateItem={updateItem}
+            onBulkUpdateItem={bulkUpdateItems}
             onDeleteItem={(id) => setItemToDelete(id)}
             onOpenBookings={(item) => setSelectedItemForBookings(item)}
             onOpenChallan={handleOpenChallan}
@@ -1844,7 +1902,12 @@ export default function App() {
           ) : currentPage === 'profile' ? (
             <UserProfile user={user} onLogout={logout} isSubscribed={isSubscribed} />
           ) : currentPage === 'help' ? (
-            <HelpPage onPageChange={setCurrentPage} onUpgradeClick={() => setIsGPayDialogOpen(true)} isSubscribed={isSubscribed} />
+            <HelpPage 
+              onPageChange={setCurrentPage} 
+              onUpgradeClick={() => setIsGPayDialogOpen(true)} 
+              isSubscribed={isSubscribed} 
+              onContactSupportClick={() => setIsContactOpen(true)}
+            />
           ) : (
             <SettingsPage godowns={godowns} setGodowns={(g) => { setGodowns(g); localStorage.setItem('app_godowns', JSON.stringify(g)); }} onClearData={() => setIsDeleteAllModalOpen(true)} />
           )}
@@ -1914,7 +1977,7 @@ export default function App() {
         )}
       </Suspense>
       
-      <ContactUs />
+      <ContactUs isOpen={isContactOpen} onOpenChange={setIsContactOpen} />
 
       <GPayDialog
         isOpen={isGPayDialogOpen}
