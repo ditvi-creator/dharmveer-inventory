@@ -523,11 +523,16 @@ export default function App() {
       setUser(currentUser);
       setAuthLoading(false);
       if (currentUser) {
+        setIsSubscribed(null);
+        setTrialStartedAt(null);
+        setIsTrialExpired(false);
         fetchStock(currentUser.uid);
         fetchUserSubscription(currentUser.uid);
       } else {
         setItems([]);
         setIsSubscribed(null);
+        setTrialStartedAt(null);
+        setIsTrialExpired(false);
       }
     });
     return () => unsubscribe();
@@ -569,6 +574,8 @@ export default function App() {
           const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
           if (Date.now() - startTime > threeDaysInMs) {
             setIsTrialExpired(true);
+          } else {
+            setIsTrialExpired(false);
           }
         } else if (!userData.isSubscribed) {
           // Document exists but no trialStartedAt and not subscribed, start trial now
@@ -578,6 +585,10 @@ export default function App() {
             updatedAt: serverTimestamp()
           });
           setTrialStartedAt(now);
+          setIsTrialExpired(false);
+        } else {
+          setTrialStartedAt(null);
+          setIsTrialExpired(false);
         }
       } else {
         // New user or no profile, set as not subscribed by default and start trial
@@ -591,12 +602,14 @@ export default function App() {
         });
         setIsSubscribed(false);
         setTrialStartedAt(now);
+        setIsTrialExpired(false);
       }
     } catch (err) {
       console.error("Error fetching subscription status", err);
       // For safety in this tool, I'll default to true if it fails or just false. 
       // User requested "only subscribed user can use". I'll set false if check fails.
       setIsSubscribed(false);
+      setIsTrialExpired(false);
     }
   };
 
