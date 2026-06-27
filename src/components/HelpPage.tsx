@@ -31,7 +31,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({
       title: 'Real-time Inventory Tracking Dashboard',
       subtitle: 'Add, update, search, and manage your stock with instant low-stock alerts.',
       description: 'The Inventory Dashboard is the core workspace of Stockify. It allows warehouse managers to capture real-time material flows across multiple storage locations (godowns) seamlessly. Key capabilities include specifying batch codes, tracking manufacturing/expiry dates, setting safety reorder thresholds, and filtering by godowns.',
-      image: '/src/assets/images/dashboard_guide_1782477252527.jpg',
+      image: '/images/dashboard_guide_1782477252527.jpg',
       bullets: [
         'Quick Filter by physical warehouse/godown location.',
         'Color-coded Low Stock and Expired item status labels.',
@@ -49,7 +49,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({
       title: 'Smart Delivery Challan Generation',
       subtitle: 'Instantly compile formal shipping documentation from any inventory entry.',
       description: 'Avoid manual calculations or double-entry mistakes. In Stockify, every inventory item row contains a smart "Challan" button. This compiles a beautifully formatted, legal delivery note complete with recipient info, dispatch mode, vehicle details, custom items lists, and formal authorization blocks.',
-      image: '/src/assets/images/challan_guide_1782477267452.jpg',
+      image: '/images/challan_guide_1782477267452.jpg',
       bullets: [
         'Pre-fills material quantities and batch codes directly from your active records.',
         'Custom fields for Transporter name, Vehicle Number, and L.R. / B.L. reference.',
@@ -101,7 +101,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({
       title: 'Auto-Recurring ₹90 Monthly Pro Subscriptions',
       subtitle: '72-Hour automatic trial countdown, instant UPI QR scan, and hands-free renewals.',
       description: 'Stockify runs on a hassle-free premium subscription. Every new user signing up starts with a strict 72-hour free trial countdown shown in the header banner. Once completed, a premium upgrade is required to continue using the application. Upgrading takes 10 seconds via Google Pay QR code and is configured for automatic, hands-free monthly auto-debit billing of ₹90.',
-      image: '/src/assets/images/auto_debit_guide_1782477282272.jpg',
+      image: '/images/auto_debit_guide_1782477282272.jpg',
       bullets: [
         'Transparent ₹90/month flat rate with no hidden fees or contracts.',
         'Automated Monthly Auto-Debit: Billed automatically; no manual monthly renewal required.',
