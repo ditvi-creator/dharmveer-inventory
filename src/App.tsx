@@ -29,6 +29,7 @@ import { Toaster, toast } from 'sonner';
 import { useSettingsContext } from './SettingsContext';
 import { useTheme } from './ThemeContext';
 import { ContactUs } from './components/ContactUs';
+import { AIChatBot } from './components/AIChatBot';
 import { GPayDialog } from './components/GPayDialog';
 
 enum OperationType {
@@ -339,6 +340,7 @@ export default function App() {
 
     recognition.onstart = () => {
       setIsListening(true);
+      window.dispatchEvent(new CustomEvent('listening-state', { detail: { system: 'search', isListening: true } }));
       toast.info('Listening...', { duration: 2000 });
     };
 
@@ -349,6 +351,7 @@ export default function App() {
 
     recognition.onerror = (event: any) => {
       setIsListening(false);
+      window.dispatchEvent(new CustomEvent('listening-state', { detail: { system: 'search', isListening: false } }));
       if (event.error === 'not-allowed') {
         toast.error('Microphone access denied. Please allow microphone permissions in your browser.', { duration: 4000 });
       } else if (event.error !== 'no-speech') {
@@ -358,6 +361,7 @@ export default function App() {
 
     recognition.onend = () => {
       setIsListening(false);
+      window.dispatchEvent(new CustomEvent('listening-state', { detail: { system: 'search', isListening: false } }));
     };
 
     if (isListening) {
@@ -558,9 +562,34 @@ export default function App() {
     const handleOpenPricing = () => setShowPricing(true);
     window.addEventListener('open-pricing', handleOpenPricing);
 
+    const handleOpenSettings = () => {
+      setCurrentPage('settings');
+    };
+    window.addEventListener('chatbot-open-settings', handleOpenSettings);
+
+    const handleOpenBookings = () => {
+      const list = itemsRef.current;
+      if (list && list.length > 0) {
+        setSelectedItemForBookings(list[0]);
+      }
+    };
+    window.addEventListener('chatbot-open-bookings', handleOpenBookings);
+
+    const handleSearchItem = (e: Event) => {
+      const customEvent = e as CustomEvent<{ query: string }>;
+      if (customEvent.detail && customEvent.detail.query) {
+        setSearchTerm(customEvent.detail.query);
+        setCurrentPage('dashboard');
+      }
+    };
+    window.addEventListener('chatbot-search-item', handleSearchItem);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-pricing', handleOpenPricing);
+      window.removeEventListener('chatbot-open-settings', handleOpenSettings);
+      window.removeEventListener('chatbot-open-bookings', handleOpenBookings);
+      window.removeEventListener('chatbot-search-item', handleSearchItem);
     };
   }, []);
 
@@ -1978,6 +2007,8 @@ export default function App() {
       </Suspense>
       
       <ContactUs isOpen={isContactOpen} onOpenChange={setIsContactOpen} />
+      
+      <AIChatBot />
 
       <GPayDialog
         isOpen={isGPayDialogOpen}

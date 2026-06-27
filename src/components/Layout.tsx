@@ -39,6 +39,30 @@ export const Layout: React.FC<LayoutProps> = ({
   const { theme, setTheme } = useTheme();
   const { settings } = useSettingsContext();
 
+  const [isChatbotListening, setIsChatbotListening] = React.useState(false);
+  const [isSearchListening, setIsSearchListening] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleListeningState = (e: Event) => {
+      const customEvent = e as CustomEvent<{ system: 'chatbot' | 'search'; isListening: boolean }>;
+      if (customEvent.detail) {
+        const { system, isListening } = customEvent.detail;
+        if (system === 'chatbot') {
+          setIsChatbotListening(isListening);
+        } else if (system === 'search') {
+          setIsSearchListening(isListening);
+        }
+      }
+    };
+
+    window.addEventListener('listening-state', handleListeningState);
+    return () => {
+      window.removeEventListener('listening-state', handleListeningState);
+    };
+  }, []);
+
+  const isListeningAny = isChatbotListening || isSearchListening;
+
   return (
     <div className="min-h-screen bg-[#F3F4F6] dark:bg-gray-950 text-[#1D1D1B] dark:text-gray-100 font-sans transition-colors duration-200 animate-fadeIn">
       {isSubscribed === false && trialStartedAt && (
@@ -58,9 +82,26 @@ export const Layout: React.FC<LayoutProps> = ({
                   referrerPolicy="no-referrer"
                 />
                 <div>
-                  <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none mb-1 text-gray-900 dark:text-white">
-                    {currentPage === 'dashboard' ? (settings.companyName || "Stockify") : "Stockify"}
-                  </h1>
+                  <div className="flex items-center gap-2.5">
+                    <h1 className="font-bold text-lg sm:text-xl tracking-tight leading-none text-gray-900 dark:text-white">
+                      {currentPage === 'dashboard' ? (settings.companyName || "Stockify") : "Stockify"}
+                    </h1>
+                    
+                    {/* Animated Audio Wave Indicator */}
+                    {isListeningAny && (
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full animate-fadeIn shadow-xs shrink-0 select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
+                        <span className="text-[9px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 shrink-0">Listening</span>
+                        <div className="flex items-end gap-0.5 h-2.5 shrink-0 pl-0.5 pb-[1px]">
+                          <div className="w-[1.5px] bg-red-500 rounded-full animate-wave-1 h-2"></div>
+                          <div className="w-[1.5px] bg-red-500 rounded-full animate-wave-2 h-2.5"></div>
+                          <div className="w-[1.5px] bg-red-500 rounded-full animate-wave-3 h-1.5"></div>
+                          <div className="w-[1.5px] bg-red-500 rounded-full animate-wave-4 h-2.2"></div>
+                          <div className="w-[1.5px] bg-red-500 rounded-full animate-wave-5 h-1.8"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide">Track and manage your inventory</p>
                 </div>
               </div>
