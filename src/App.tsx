@@ -292,6 +292,56 @@ export default function App() {
     return () => clearInterval(interval);
   }, [trialStartedAt, isSubscribed]);
 
+  // Dynamic SEO Page Optimizer Effect
+  useEffect(() => {
+    let title = "Stockify - Professional Inventory Manager Online & Stock Management Website";
+    let desc = "Stockify is the ultimate online inventory manager and stock management website. Track warehouse stock across multiple godowns, manage active bookings, generate custom delivery challans, and print bulk barcodes instantly.";
+    
+    switch (currentPage) {
+      case 'dashboard':
+        title = "Stockify Dashboard - Online Stock Management System & Barcode Generator";
+        desc = "Effortlessly track stock levels, assign material to multiple godowns, print custom bulk barcodes or storage labels, and calculate real-time inventory balances.";
+        break;
+      case 'settings':
+        title = "Stockify Settings - Configure Warehouses, Godowns & Reorder Safety Alerts";
+        desc = "Manage online stock settings, add or rename multiple godowns, define custom company headers, and configure safety reorder thresholds for your materials.";
+        break;
+      case 'analytics':
+        title = "Stockify Live Analytics - Inventory Valuation & Stock Distribution Visualizations";
+        desc = "Analyze real-time stock levels, category distribution charts, godown capacities, and automated inventory valuation metrics with Stockify's advanced visualizer.";
+        break;
+      case 'profile':
+        title = "Stockify User Account - Secure Cloud Login & Premium Subscription Status";
+        desc = "Manage your secure cloud-synced account settings, user profile credentials, and ₹90/month flat-rate premium subscription features.";
+        break;
+      case 'help':
+        title = "Stockify Help & Customer Support - Print Barcodes & Issue Delivery Challans";
+        desc = "Access comprehensive online inventory tutorial guides. Learn how to print customized barcode tags, generate PDF delivery challans, and sync multi-warehouse records.";
+        break;
+      default:
+        break;
+    }
+
+    document.title = title;
+    
+    // Update or create the meta description element
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', desc);
+    } else {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      metaDescription.setAttribute('content', desc);
+      document.head.appendChild(metaDescription);
+    }
+
+    // Update or create meta Open Graph title & description for dynamic SEO scraping
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', desc);
+  }, [currentPage]);
+
   const [godowns, setGodowns] = useState<{id: string, name: string}[]>(() => {
     const saved = localStorage.getItem('app_godowns');
     if (saved) {
