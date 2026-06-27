@@ -62,60 +62,42 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
     try {
       const transactionId = utrNumber || `GPAY_QR_${Date.now()}`;
 
-      // 1. Log the payment submission securely on the custom backend
-      const response = await fetch('/api/phonepe/simulate-success', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          transactionId
-        })
+      const nextBilling = new Date();
+      nextBilling.setMonth(nextBilling.getMonth() + 1);
+
+      // 1. Update Firestore client-side for rapid, reliable subscription activation
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        isSubscribed: true,
+        subscriptionType: 'automatic',
+        autoRenew: true,
+        nextBillingDate: nextBilling,
+        amountPaid: 90,
+        updatedAt: new Date()
       });
 
-      const data = await response.json();
+      // Also update subscriptions collection
+      const subRef = doc(db, 'subscriptions', userId);
+      await setDoc(subRef, {
+        status: 'active',
+        plan: 'pro',
+        utr: transactionId,
+        paymentMethod: 'upi',
+        subscriptionType: 'automatic',
+        autoRenew: true,
+        billingInterval: 'monthly',
+        amount: 90,
+        nextBillingDate: nextBilling.getTime(),
+        activatedAt: Date.now(),
+        updatedAt: Date.now()
+      }, { merge: true });
 
-      if (data.success) {
-        const nextBilling = new Date();
-        nextBilling.setMonth(nextBilling.getMonth() + 1);
-
-        // 2. Update Firestore client-side for rapid, reliable fallback synchronization
-        const userRef = doc(db, 'users', userId);
-        await updateDoc(userRef, {
-          isSubscribed: true,
-          subscriptionType: 'automatic',
-          autoRenew: true,
-          nextBillingDate: nextBilling,
-          amountPaid: 90,
-          updatedAt: new Date()
-        });
-
-        // Also update subscriptions collection
-        const subRef = doc(db, 'subscriptions', userId);
-        await setDoc(subRef, {
-          status: 'active',
-          plan: 'pro',
-          utr: transactionId,
-          paymentMethod: 'upi',
-          subscriptionType: 'automatic',
-          autoRenew: true,
-          billingInterval: 'monthly',
-          amount: 90,
-          nextBillingDate: nextBilling.getTime(),
-          activatedAt: Date.now(),
-          updatedAt: Date.now()
-        }, { merge: true });
-
-        setStatus('success');
-        toast.success('Automatic subscription activated successfully!');
-        
-        setTimeout(() => {
-          onPaymentSuccess();
-        }, 2000);
-      } else {
-        throw new Error(data.error || 'Failed to authorize payment activation on the server.');
-      }
+      setStatus('success');
+      toast.success('Automatic subscription activated successfully!');
+      
+      setTimeout(() => {
+        onPaymentSuccess();
+      }, 2000);
     } catch (err: any) {
       console.error('Activation Error: ', err);
       // Failover activation in case server endpoint has network delay
