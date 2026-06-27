@@ -67,6 +67,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({
       title: 'Bulk Printable Barcodes & Storage Labels',
       subtitle: 'Select multiple products to design and print high-resolution sticker grids instantly.',
       description: 'Streamline your physical warehouse tracking with Stockify\'s custom sticker printer. Click the checkboxes next to any items on your dashboard to select them. A floating blueprint bar will appear, letting you open the Label Builder. Customize templates, sizing, column layouts, custom branding headers, and toggle barcodes/QR codes dynamically before sending to your standard printer or exporting to PDF.',
+      image: '/images/bulk_labels_guide.jpg',
       bullets: [
         'Supports Avery multi-label sticker sheets with customizable 1, 2, 3, or 4-column layout grids.',
         'Choose from 4 professional themes: Warehouse Tags, Industrial Labels, Specification Cards, and Minimalist QR Tags.',
@@ -84,6 +85,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({
       title: 'Bulk Updates & Smart Multi-Row Assignments',
       subtitle: 'Re-assign categories, units, and safety stock levels for multiple items at once.',
       description: 'Avoid repetitive editing tasks with our smart Bulk Update engine. Simply click the checkboxes next to the items on your dashboard to select them, then click "Bulk Update" in the floating action bar. A unified control panel will open, allowing you to selectively assign category/brand associations, packaging units, and reorder alerts in a single batch.',
+      image: '/images/bulk_updates_guide.png',
       bullets: [
         'Atomically execute multi-row changes via secure Firestore writeBatch operations.',
         'Intelligent checkboxes: Only apply updates to specific attributes you actively select.',
