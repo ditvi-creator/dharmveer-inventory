@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Plus, FileText, Bell, PenLine, Trash2, Printer, AlertTriangle, ImageIcon, X, Clock } from 'lucide-react';
+import { History, Plus, FileText, Bell, PenLine, Trash2, Printer, AlertTriangle, ImageIcon, X, Clock, ArrowRightLeft } from 'lucide-react';
 import { StockItem, Godown } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -7,6 +7,7 @@ import { useSettingsContext } from '../SettingsContext';
 import { TrialCountdown } from './TrialCountdown';
 import { BulkPrintLabelsModal } from './BulkPrintLabelsModal';
 import { BulkUpdateModal } from './BulkUpdateModal';
+import { TransferModal } from './TransferModal';
 
 interface StockTableProps {
   items: StockItem[];
@@ -76,6 +77,7 @@ export const StockTable: React.FC<StockTableProps> = ({
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
+  const [itemToTransfer, setItemToTransfer] = useState<StockItem | null>(null);
 
   const selectedItems = items.filter(item => selectedItemIds.includes(item.id));
   
@@ -448,6 +450,9 @@ export const StockTable: React.FC<StockTableProps> = ({
                               } : undefined} 
                             />
                           </button>
+                          <button onClick={() => setItemToTransfer(item)} className="p-1 sm:p-1.5 text-gray-400 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:bg-indigo-900/20 rounded-md transition-colors" title="Transfer Stock">
+                            <ArrowRightLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </button>
                           <button onClick={() => onEditItem(item)} className="p-1 sm:p-1.5 text-gray-400 dark:text-gray-400 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:bg-blue-900/20 rounded-md transition-colors" title="Edit Item">
                             <PenLine className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
@@ -479,6 +484,14 @@ export const StockTable: React.FC<StockTableProps> = ({
           allItems={items}
           onClose={() => setIsBulkUpdateModalOpen(false)}
           onBulkUpdate={onBulkUpdateItem}
+        />
+      )}
+      {itemToTransfer && (
+        <TransferModal
+          item={itemToTransfer}
+          godowns={godowns}
+          onClose={() => setItemToTransfer(null)}
+          onUpdateItem={onUpdateItem}
         />
       )}
     </AnimatePresence>

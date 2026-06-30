@@ -109,7 +109,7 @@ function LandingPage({ onSignIn, onPricing, appName }: { onSignIn: () => void, o
           className="flex items-center gap-2"
         >
           <img 
-            src="/logo.png" 
+            src="https://cdn.phototourl.com/free/2026-06-30-00a22a1a-efa1-4706-b70a-088704a6c275.png" 
             alt="Stockify" 
             className="w-8 h-8 rounded-lg shadow-sm" 
             referrerPolicy="no-referrer"

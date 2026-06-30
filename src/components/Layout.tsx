@@ -76,9 +76,9 @@ export const Layout: React.FC<LayoutProps> = ({
             <div className="flex items-center gap-10">
               <div className="flex items-center gap-4">
                 <img 
-                  src="/logo.png" 
+                  src="https://cdn.phototourl.com/free/2026-06-30-00a22a1a-efa1-4706-b70a-088704a6c275.png" 
                   alt="Stockify" 
-                  className="w-8 h-8 rounded-lg shadow-sm" 
+                  className="w-[45px] h-[45px] rounded-lg shadow-sm" 
                   referrerPolicy="no-referrer"
                 />
                 <div>
