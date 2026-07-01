@@ -228,52 +228,66 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout, isSubs
             {/* Sidebar Stats/Info */}
             <div className="lg:col-span-1 space-y-6">
               {isSubscribed && (
-                <div className="p-6 bg-gradient-to-br from-emerald-500/10 via-emerald-600/5 to-transparent rounded-2xl border border-emerald-500/20 shadow-xs animate-fadeIn">
+                <div className={`p-6 bg-gradient-to-br ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'from-amber-500/10 via-amber-600/5' : 'from-emerald-500/10 via-emerald-600/5'} to-transparent rounded-2xl ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'border border-amber-500/30' : 'border border-emerald-500/20'} shadow-xs animate-fadeIn`}>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="bg-emerald-500/20 p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400">
+                    <div className={`p-1.5 rounded-lg ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
                       <Sparkles className="w-4 h-4 animate-pulse" />
                     </div>
-                    <h3 className="text-sm font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">Pro Subscription</h3>
+                    <h3 className={`text-sm font-bold ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'text-amber-800 dark:text-amber-400' : 'text-emerald-800 dark:text-emerald-400'} uppercase tracking-wider`}>
+                      {user?.email === 'dharmvir1000.dd@gmail.com' ? 'Lifetime VIP Member' : 'Pro Subscription'}
+                    </h3>
                   </div>
 
                   <div className="space-y-4">
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Billing Plan</p>
                       <p className="text-sm font-extrabold text-gray-950 dark:text-white flex items-center gap-1.5">
-                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                        Pro Plan Monthly
+                        <ShieldCheck className={`w-4 h-4 ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'text-amber-500' : 'text-emerald-500'}`} />
+                        {user?.email === 'dharmvir1000.dd@gmail.com' ? 'Lifetime Free Pro' : 'Pro Plan Monthly'}
                       </p>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Recurring Amount</p>
                       <p className="text-sm font-extrabold text-gray-950 dark:text-white flex items-center gap-1.5">
-                        <CreditCard className="w-4 h-4 text-emerald-500" />
-                        ₹90.00 / month
+                        <CreditCard className={`w-4 h-4 ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'text-amber-500' : 'text-emerald-500'}`} />
+                        {user?.email === 'dharmvir1000.dd@gmail.com' ? '₹0.00 / Lifetime Free' : '₹90.00 / month'}
                       </p>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Renewal Process</p>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                        Automatic Auto-Debit Enabled
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold ${user?.email === 'dharmvir1000.dd@gmail.com' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-500/20' : 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'}`}>
+                        {user?.email === 'dharmvir1000.dd@gmail.com' ? 'Active For Lifetime' : 'Automatic Auto-Debit Enabled'}
                       </span>
                     </div>
 
-                    {subDetails?.nextBillingDate && (
-                      <div className="pt-2 border-t border-emerald-500/15">
+                    {user?.email === 'dharmvir1000.dd@gmail.com' ? (
+                      <div className="pt-2 border-t border-amber-500/15">
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-emerald-500" />
-                          Next Automatic Charge
+                          <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                          Expiration Status
                         </p>
-                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                          {new Date(subDetails.nextBillingDate).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
+                        <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                          Never Expires (Free Forever)
                         </p>
                       </div>
+                    ) : (
+                      subDetails?.nextBillingDate && (
+                        <div className="pt-2 border-t border-emerald-500/15">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                            Next Automatic Charge
+                          </p>
+                          <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                            {new Date(subDetails.nextBillingDate).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      )
                     )}
                   </div>
                 </div>

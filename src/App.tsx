@@ -677,6 +677,39 @@ export default function App() {
   }, []);
 
   const fetchUserSubscription = async (uid: string) => {
+    // Check if user has lifetime free pro access
+    if (auth.currentUser?.email === 'dharmvir1000.dd@gmail.com') {
+      setIsSubscribed(true);
+      setIsTrialExpired(false);
+      
+      // Persist to Firestore to keep it synced
+      try {
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          if (!userData.isSubscribed) {
+            await updateDoc(userRef, {
+              isSubscribed: true,
+              lifetimePro: true,
+              updatedAt: serverTimestamp()
+            });
+          }
+        } else {
+          await setDoc(userRef, {
+            fullName: auth.currentUser?.displayName || 'VIP Member',
+            isSubscribed: true,
+            lifetimePro: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        }
+      } catch (err) {
+        console.error("Error setting lifetime subscription in db", err);
+      }
+      return;
+    }
+
     try {
       const userRef = doc(db, 'users', uid);
       const userSnap = await getDoc(userRef);
