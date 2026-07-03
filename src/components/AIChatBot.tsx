@@ -15,8 +15,8 @@ interface Message {
 
 const STARTER_PROMPTS = [
   { label: '📦 How to add stock?', text: 'How do I add a new stock item in Stockify?' },
-  { label: '🏷️ Printing Barcodes', text: 'How do I use bulk printable barcodes and storage labels?' },
-  { label: '📑 Generation of Challans', text: 'How do I compile and print a Delivery Challan?' },
+  { label: '💬 Contact Support', text: 'open contact support' },
+  { label: '📊 Analytics Page', text: 'open analytics section' },
   { label: '⚙️ Settings Page', text: 'open settings' },
   { label: '📅 Bookings Dialog', text: 'open bookings dialogue' }
 ];
@@ -138,6 +138,11 @@ export const AIChatBot: React.FC = () => {
     
     const settingsRegex = /\[COMMAND:\s*OPEN_SETTINGS\s*\]/gi;
     const bookingsRegex = /\[COMMAND:\s*OPEN_BOOKINGS\s*\]/gi;
+    const helpRegex = /\[COMMAND:\s*OPEN_HELP\s*\]/gi;
+    const analyticsRegex = /\[COMMAND:\s*OPEN_ANALYTICS\s*\]/gi;
+    const dashboardRegex = /\[COMMAND:\s*OPEN_DASHBOARD\s*\]/gi;
+    const profileRegex = /\[COMMAND:\s*OPEN_PROFILE\s*\]/gi;
+    const contactRegex = /\[COMMAND:\s*OPEN_CONTACT\s*\]/gi;
     const searchRegex = /\[COMMAND:\s*SEARCH_ITEM:\s*([^\]]+)\]/gi;
 
     if (settingsRegex.test(responseText)) {
@@ -147,6 +152,26 @@ export const AIChatBot: React.FC = () => {
     if (bookingsRegex.test(responseText)) {
       window.dispatchEvent(new CustomEvent('chatbot-open-bookings'));
       cleanText = cleanText.replace(bookingsRegex, '');
+    }
+    if (helpRegex.test(responseText)) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-help'));
+      cleanText = cleanText.replace(helpRegex, '');
+    }
+    if (analyticsRegex.test(responseText)) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-analytics'));
+      cleanText = cleanText.replace(analyticsRegex, '');
+    }
+    if (dashboardRegex.test(responseText)) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-dashboard'));
+      cleanText = cleanText.replace(dashboardRegex, '');
+    }
+    if (profileRegex.test(responseText)) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-profile'));
+      cleanText = cleanText.replace(profileRegex, '');
+    }
+    if (contactRegex.test(responseText)) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-contact'));
+      cleanText = cleanText.replace(contactRegex, '');
     }
     
     let searchMatch;
@@ -170,6 +195,16 @@ export const AIChatBot: React.FC = () => {
       window.dispatchEvent(new CustomEvent('chatbot-open-settings'));
     } else if (lowerText.includes('open bookings') || lowerText.includes('open booking') || lowerText.includes('bookings dialogue') || lowerText.includes('bookings box')) {
       window.dispatchEvent(new CustomEvent('chatbot-open-bookings'));
+    } else if (lowerText.includes('open help') || lowerText.includes('go to help') || lowerText.includes('help page') || lowerText.includes('help section') || lowerText.includes('tutorials') || lowerText.includes('faq')) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-help'));
+    } else if (lowerText.includes('open analytics') || lowerText.includes('go to analytics') || lowerText.includes('analytics section') || lowerText.includes('charts') || lowerText.includes('reports') || lowerText.includes('valuation')) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-analytics'));
+    } else if (lowerText.includes('open dashboard') || lowerText.includes('go to dashboard') || lowerText.includes('open home') || lowerText.includes('go to home') || lowerText.includes('stock list')) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-dashboard'));
+    } else if (lowerText.includes('open profile') || lowerText.includes('go to profile') || lowerText.includes('my profile') || lowerText.includes('open account') || lowerText.includes('my account') || lowerText.includes('user profile')) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-profile'));
+    } else if (lowerText.includes('contact support') || lowerText.includes('open support') || lowerText.includes('contact us') || lowerText.includes('open contact') || lowerText.includes('support team') || lowerText.includes('help desk')) {
+      window.dispatchEvent(new CustomEvent('chatbot-open-contact'));
     } else if (lowerText.includes('search') || lowerText.includes('find') || lowerText.includes('details of') || lowerText.includes('detail of')) {
       let query = '';
       if (lowerText.includes('search item')) query = lowerText.split('search item')[1];
@@ -223,6 +258,11 @@ Stockify is a cloud-native, high-performance Full-Stack Inventory Management sui
 IMPORTANT VOICE AND REDIRECT AUTOMATION GUIDELINES:
 - If the user says "open settings" or asks to open/go to settings, include the instruction: [COMMAND:OPEN_SETTINGS] in your text reply and friendly say that you are opening it.
 - If the user says "open bookings dialogue" or "open booking" or similar bookings dialogue query, include the instruction: [COMMAND:OPEN_BOOKINGS] in your text reply and say you are opening it.
+- If the user asks to open/go to help, tutorials, or FAQ, include the instruction: [COMMAND:OPEN_HELP] in your text reply and say you are taking them there.
+- If the user asks to open/go to analytics, charts, or reports, include the instruction: [COMMAND:OPEN_ANALYTICS] in your text reply and say you are showing them the charts.
+- If the user asks to open/go to dashboard, home, or main list, include the instruction: [COMMAND:OPEN_DASHBOARD] in your text reply and say you are navigating to the main dashboard.
+- If the user asks to open/go to user profile or account settings, include the instruction: [COMMAND:OPEN_PROFILE] in your text reply and say you are taking them to their profile.
+- If the user says "open contact support", "contact us", "open contact us", "talk to support", or similar contact/support query, include the instruction: [COMMAND:OPEN_CONTACT] in your text reply and say you are opening the customer support form.
 - If the user asks to find/search an item or asks for its details (e.g. "find item steel", "show details of hammer"), determine the search query and include [COMMAND:SEARCH_ITEM:item_name] (replace "item_name" with the actual search word) in your reply, and inform them you have found the matching items.
 
 Keep your answers concise, clear, and highly practical. Use bold formatting and clean bullet points for readability.

@@ -634,12 +634,42 @@ export default function App() {
     };
     window.addEventListener('chatbot-search-item', handleSearchItem);
 
+    const handleOpenHelp = () => {
+      setCurrentPage('help');
+    };
+    window.addEventListener('chatbot-open-help', handleOpenHelp);
+
+    const handleOpenAnalytics = () => {
+      setCurrentPage('analytics');
+    };
+    window.addEventListener('chatbot-open-analytics', handleOpenAnalytics);
+
+    const handleOpenDashboard = () => {
+      setCurrentPage('dashboard');
+    };
+    window.addEventListener('chatbot-open-dashboard', handleOpenDashboard);
+
+    const handleOpenProfile = () => {
+      setCurrentPage('profile');
+    };
+    window.addEventListener('chatbot-open-profile', handleOpenProfile);
+
+    const handleOpenContact = () => {
+      setIsContactOpen(true);
+    };
+    window.addEventListener('chatbot-open-contact', handleOpenContact);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-pricing', handleOpenPricing);
       window.removeEventListener('chatbot-open-settings', handleOpenSettings);
       window.removeEventListener('chatbot-open-bookings', handleOpenBookings);
       window.removeEventListener('chatbot-search-item', handleSearchItem);
+      window.removeEventListener('chatbot-open-help', handleOpenHelp);
+      window.removeEventListener('chatbot-open-analytics', handleOpenAnalytics);
+      window.removeEventListener('chatbot-open-dashboard', handleOpenDashboard);
+      window.removeEventListener('chatbot-open-profile', handleOpenProfile);
+      window.removeEventListener('chatbot-open-contact', handleOpenContact);
     };
   }, []);
 
