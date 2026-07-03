@@ -21,13 +21,21 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { message, history, systemInstruction, tools } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // failed to parse JSON from string body
+      }
+    }
+    const { message, history, systemInstruction, tools } = body || {};
     
-    // Support both production variable names
-    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    // Support multiple typical env names for robust deployment fallback
+    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API;
     if (!apiKey) {
       return res.status(500).json({ 
-        error: "GEMINI_API_KEY is not configured on your Vercel project. Please add GEMINI_API_KEY as an environment variable in your Vercel Project Settings." 
+        error: "GEMINI_API_KEY is not configured on Vercel. Please add GEMINI_API_KEY as an environment variable in your Vercel Project Settings (Settings > Environment Variables) and re-deploy." 
       });
     }
 

@@ -266,7 +266,16 @@ Avoid mentioning technical jargon like "Firebase/Firestore", "Express", "Node.js
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        let serverErrorMsg = 'Failed to get response from AI';
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            serverErrorMsg = errData.error;
+          }
+        } catch (e) {
+          // fallback to generic message if parsing failed
+        }
+        throw new Error(serverErrorMsg);
       }
 
       const data = await response.json();
@@ -286,12 +295,15 @@ Avoid mentioning technical jargon like "Firebase/Firestore", "Express", "Node.js
 
     } catch (err: any) {
       console.error(err);
-      const errMessage = "⚠️ Sorry, I'm having trouble connecting right now. Please check your internet connection or try again in a moment.";
+      const isConfigError = err.message && (err.message.includes("GEMINI_API_KEY") || err.message.includes("not configured"));
+      const errMessage = isConfigError 
+        ? `⚠️ Error: ${err.message}`
+        : "⚠️ Sorry, I'm having trouble connecting right now. Please check your internet connection or try again in a moment.";
       setMessages(prev => [...prev, {
         role: 'model',
         content: errMessage
       }]);
-      speakText(errMessage);
+      speakText(isConfigError ? "API Key is not configured." : errMessage);
     } finally {
       setIsLoading(false);
     }
