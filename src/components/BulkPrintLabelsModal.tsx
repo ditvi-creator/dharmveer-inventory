@@ -1,17 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Printer, Settings, Eye, Check, Columns, Grid, Layout, BookOpen, AlertCircle, FileText, Badge } from 'lucide-react';
-import { StockItem } from '../types';
+import { StockItem, Godown } from '../types';
 import { toast } from 'sonner';
+import JsBarcode from 'jsbarcode';
+import QRCode from 'qrcode';
 
 interface BulkPrintLabelsModalProps {
   selectedItems: StockItem[];
   onClose: () => void;
+  godowns?: Godown[];
 }
+
+export const BarcodeRenderer: React.FC<{
+  value: string;
+  labelText: string;
+  lightTheme?: boolean;
+}> = ({ value, labelText, lightTheme = true }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (svgRef.current) {
+      try {
+        JsBarcode(svgRef.current, value, {
+          format: "CODE128",
+          width: 0.8, // adjusted slightly for standard scannability
+          height: 25,
+          displayValue: true,
+          text: labelText,
+          fontSize: 7.5,
+          margin: 1,
+          background: "transparent",
+          lineColor: lightTheme ? "#000000" : "#9ca3af"
+        });
+      } catch (err) {
+        console.error("Failed to render barcode", err);
+      }
+    }
+  }, [value, labelText, lightTheme]);
+
+  return (
+    <svg 
+      ref={svgRef} 
+      className="max-w-full h-auto max-h-[45px] shrink-0 mx-auto"
+    />
+  );
+};
+
+export const QRCodeRenderer: React.FC<{
+  value: string;
+  lightTheme?: boolean;
+  className?: string;
+}> = ({ value, lightTheme = true, className = "w-10 h-10 shrink-0" }) => {
+  const [src, setSrc] = useState<string>('');
+
+  useEffect(() => {
+    let active = true;
+    QRCode.toDataURL(value, {
+      margin: 1,
+      color: {
+        dark: lightTheme ? '#000000' : '#ffffff',
+        light: '#ffffff00'
+      }
+    })
+      .then(url => {
+        if (active) setSrc(url);
+      })
+      .catch(err => {
+        console.error("Failed to render QR", err);
+      });
+    return () => {
+      active = false;
+    };
+  }, [value, lightTheme]);
+
+  if (!src) {
+    return <div className={`${className} bg-gray-100 dark:bg-gray-800 animate-pulse rounded`} />;
+  }
+
+  return (
+    <img 
+      src={src} 
+      className={className} 
+      alt="QR Code" 
+      referrerPolicy="no-referrer" 
+    />
+  );
+};
 
 type LabelStyle = 'industrial' | 'warehouse' | 'specs' | 'minimalist';
 
-export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ selectedItems, onClose }) => {
+export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ selectedItems, onClose, godowns }) => {
   const [style, setStyle] = useState<LabelStyle>('warehouse');
   const [columns, setColumns] = useState<number>(3);
   const [showImage, setShowImage] = useState<boolean>(true);
@@ -23,111 +102,72 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
   const [labelSize, setLabelSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [customTitle, setCustomTitle] = useState<string>('STOCKIFY INVENTORY');
 
-  // SVG Barcode Generator seeded by item info
-  const renderBarcodeSVG = (text: string, lightTheme = true) => {
-    const hash = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const pattern = (hash % 500) + 500; 
-    const binary = pattern.toString(2).repeat(3); 
-    
-    const bars = [];
-    let currentX = 10;
-    const barColor = lightTheme ? 'black' : '#9ca3af';
-    for (let i = 0; i < binary.length; i++) {
-      const isBar = binary[i] === '1';
-      const width = isBar ? (i % 3 === 0 ? 3 : 1.5) : (i % 2 === 0 ? 2 : 1);
-      if (isBar) {
-        bars.push(
-          <rect key={i} x={currentX} y={5} width={width} height={35} fill={barColor} />
-        );
-      }
-      currentX += width + 1;
-    }
-    
-    return (
-      <div className="flex flex-col items-center gap-0.5 font-mono text-[9px] mt-1 shrink-0">
-        <svg className="w-full h-8 max-w-[140px]" viewBox={`0 0 ${currentX + 10} 45`}>
-          {bars}
-        </svg>
-        <span className="text-[8px] tracking-widest uppercase">*{text.substring(0, 8).toUpperCase()}*</span>
-      </div>
-    );
-  };
-
-  // SVG QR Code Generator seeded by item info
-  const renderQRCodeSVG = (text: string, lightTheme = true) => {
-    const size = 16;
-    const rects: React.ReactNode[] = [];
-    const color = lightTheme ? 'currentColor' : '#cbd5e1';
-    
-    const corners = [
-      { x: 0, y: 0 },
-      { x: size - 5, y: 0 },
-      { x: 0, y: size - 5 }
-    ];
-    
-    const drawCorner = (cx: number, cy: number) => {
-      const list = [];
-      for (let x = 0; x < 5; x++) {
-        for (let y = 0; y < 5; y++) {
-          const isBorder = x === 0 || x === 4 || y === 0 || y === 4;
-          const isCenter = x === 2 && y === 2;
-          if (isBorder || isCenter) {
-            list.push(
-              <rect 
-                key={`${cx+x}-${cy+y}`} 
-                x={cx + x} 
-                y={cy + y} 
-                width={1} 
-                height={1} 
-                fill={color} 
-              />
-            );
+  const getGodownStocksString = (item: StockItem) => {
+    const list = godowns || [];
+    if (list.length === 0) {
+      try {
+        const saved = localStorage.getItem('app_godowns');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            list.push(...parsed);
           }
         }
-      }
-      return list;
-    };
-    
-    corners.forEach(c => rects.push(...drawCorner(c.x, c.y)));
-    
-    const hash = text.split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0);
-    
-    for (let x = 0; x < size; x++) {
-      for (let y = 0; y < size; y++) {
-        const inTopLeft = x < 5 && y < 5;
-        const inTopRight = x >= size - 5 && y < 5;
-        const inBottomLeft = x < 5 && y >= size - 5;
-        if (inTopLeft || inTopRight || inBottomLeft) continue;
-        
-        const bit = ((x * 17 + y * 23 + Math.abs(hash)) % 11) % 2 === 0;
-        if (bit) {
-          rects.push(
-            <rect 
-              key={`${x}-${y}`} 
-              x={x} 
-              y={y} 
-              width={1} 
-              height={1} 
-              fill={color} 
-            />
-          );
-        }
+      } catch (e) {
+        console.error(e);
       }
     }
     
-    return (
-      <svg className="w-10 h-10 shrink-0 text-gray-800 dark:text-gray-200" viewBox={`0 0 ${size} ${size}`}>
-        {rects}
-      </svg>
-    );
+    if (list.length === 0) {
+      if (!item.godownStocks) return '0';
+      return Object.entries(item.godownStocks)
+        .map(([id, qty]) => `${id}: ${qty}`)
+        .join(', ');
+    }
+    
+    return list
+      .map(g => {
+        const qty = item.godownStocks?.[g.id] || 0;
+        return `${g.name}: ${qty}`;
+      })
+      .join(', ');
   };
 
+  const getBarcodeData = (item: StockItem) => {
+    const godownQtyStr = getGodownStocksString(item);
+    return `Name: ${item.name} | Size: ${item.size} | Unit: ${item.unit || 'BOX'} | Godowns: ${godownQtyStr} | Balance: ${item.balance} | Min: ${item.reorderLevel} | Party: ${item.partyName || 'N/A'}`;
+  };
+
+  const getBarcodeSVGString = (text: string, labelText: string, lightTheme = true) => {
+    try {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      JsBarcode(svg, text, {
+        format: "CODE128",
+        width: 0.8,
+        height: 25,
+        displayValue: true,
+        text: labelText,
+        fontSize: 7.5,
+        margin: 2,
+        background: "transparent",
+        lineColor: lightTheme ? "#000000" : "#9ca3af"
+      });
+      return svg.outerHTML;
+    } catch (e) {
+      console.error("Barcode generation error", e);
+      return '';
+    }
+  };
+
+
   // Build high-fidelity printer HTML page and execute native print
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (selectedItems.length === 0) {
       toast.error("No items selected for printing.");
       return;
     }
+
+    const toastId = toast.loading("Generating scannable high-res print labels...");
 
     const sizeClasses = {
       sm: 'padding: 8px; font-size: 11px; height: 110px;',
@@ -142,212 +182,214 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
       4: 'grid-template-columns: repeat(4, minmax(0, 1fr));'
     }[columns] || 'grid-template-columns: repeat(3, minmax(0, 1fr));';
 
-    // Generate inner items HTML
-    const itemsHTML = selectedItems.map((item) => {
-      // Setup dynamic variables
-      const barcodeHTML = showBarcode ? `
-        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 6px; font-family: monospace; font-size: 8px;">
-          <svg style="height: 30px; max-width: 130px;" viewBox="0 0 100 45">
-            ${Array.from({ length: 15 }).map((_, i) => {
-              const hash = item.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              const isBar = ((i * 13 + hash) % 7) > 2;
-              const width = isBar ? (((i + hash) % 3) === 0 ? 3 : 1.5) : 0;
-              return isBar ? `<rect x="${i * 5 + 5}" y="5" width="${width}" height="35" fill="black" />` : '';
-            }).join('')}
-          </svg>
-          <span style="letter-spacing: 2px; text-transform: uppercase;">*${item.id.substring(0, 8).toUpperCase()}*</span>
-        </div>
-      ` : '';
+    try {
+      // Generate inner items HTML asynchronously to fetch QR codes
+      const itemsHTMLArray = await Promise.all(selectedItems.map(async (item) => {
+        const barcodeData = getBarcodeData(item);
+        const labelText = `* ${item.name.substring(0, 15).toUpperCase()} (${item.id.substring(0, 4).toUpperCase()}) *`;
 
-      const qrHTML = showQR ? `
-        <svg style="width: 44px; height: 44px; color: #1f2937;" viewBox="0 0 16 16">
-          <rect x="0" y="0" width="5" height="5" fill="none" stroke="black" stroke-width="1" />
-          <rect x="1" y="1" width="3" height="3" fill="black" />
-          <rect x="11" y="0" width="5" height="5" fill="none" stroke="black" stroke-width="1" />
-          <rect x="12" y="1" width="3" height="3" fill="black" />
-          <rect x="0" y="11" width="5" height="5" fill="none" stroke="black" stroke-width="1" />
-          <rect x="1" y="12" width="3" height="3" fill="black" />
-          <rect x="6" y="2" width="1" height="3" fill="black" />
-          <rect x="8" y="5" width="2" height="2" fill="black" />
-          <rect x="7" y="9" width="3" height="1" fill="black" />
-          <rect x="12" y="7" width="2" height="3" fill="black" />
-          <rect x="6" y="12" width="4" height="2" fill="black" />
-        </svg>
-      ` : '';
-
-      const imgHTML = (showImage && item.imageUrl) ? `
-        <div style="width: 44px; height: 44px; border-radius: 6px; overflow: hidden; border: 1px solid #e5e7eb; margin-right: 8px; flex-shrink: 0;">
-          <img src="${item.imageUrl}" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-      ` : '';
-
-      const specsHTML = `
-        <div style="font-size: 11px; color: #4b5563; margin-top: 4px; display: flex; flex-direction: column; gap: 2px; flex-grow: 1;">
-          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px;">
-            <span>Size/Unit:</span>
-            <strong style="color: #111827;">${item.size} / ${item.unit || 'BOX'}</strong>
+        // Setup dynamic variables
+        const barcodeHTML = showBarcode ? `
+          <div style="display: flex; flex-direction: column; align-items: center; margin-top: 6px; font-family: monospace; font-size: 8px; width: 100%;">
+            ${getBarcodeSVGString(barcodeData, labelText, true)}
           </div>
-          ${showStockBalance ? `
+        ` : '';
+
+        let qrHTML = '';
+        if (showQR) {
+          const qrUrl = await QRCode.toDataURL(barcodeData, {
+            margin: 1,
+            color: {
+              dark: '#000000',
+              light: '#ffffff'
+            }
+          });
+          qrHTML = `
+            <img src="${qrUrl}" style="width: 44px; height: 44px; flex-shrink: 0;" />
+          `;
+        }
+
+        const imgHTML = (showImage && item.imageUrl) ? `
+          <div style="width: 44px; height: 44px; border-radius: 6px; overflow: hidden; border: 1px solid #e5e7eb; margin-right: 8px; flex-shrink: 0;">
+            <img src="${item.imageUrl}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+        ` : '';
+
+        const specsHTML = `
+          <div style="font-size: 11px; color: #4b5563; margin-top: 4px; display: flex; flex-direction: column; gap: 2px; flex-grow: 1;">
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px;">
-              <span>Stock Balance:</span>
-              <strong style="color: #111827;">${item.balance}</strong>
+              <span>Size/Unit:</span>
+              <strong style="color: #111827;">${item.size} / ${item.unit || 'BOX'}</strong>
             </div>
-          ` : ''}
-          ${showReorderLevel ? `
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px;">
-              <span>Reorder Level:</span>
-              <strong style="color: #111827;">${item.reorderLevel}</strong>
-            </div>
-          ` : ''}
-          ${showPartyName && item.partyName ? `
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px; text-overflow: truncate;">
-              <span>Default Supplier:</span>
-              <strong style="color: #111827; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.partyName}</strong>
-            </div>
-          ` : ''}
-        </div>
-      `;
-
-      if (style === 'industrial') {
-        return `
-          <div class="label-card" style="border: 2px solid #111827; border-radius: 4px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; ${sizeClasses[labelSize]}">
-            <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 1.5px solid #111827; padding-bottom: 4px; margin-bottom: 4px;">
-              <span style="font-size: 8px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">${customTitle}</span>
-              ${item.category ? `<span style="font-size: 8px; font-weight: 700; background: #e5e7eb; padding: 1px 4px; border-radius: 2px; text-transform: uppercase;">${item.category}</span>` : ''}
-            </div>
-            <div style="font-size: 14px; font-weight: 900; color: black; line-height: 1.1; margin-bottom: 2px; text-transform: uppercase;">${item.name}</div>
-            <div style="font-size: 11px; font-weight: 800; color: #1f2937;">SIZE: ${item.size}</div>
-            <div style="display: flex; justify-content: space-between; align-items: end; margin-top: auto;">
-              ${barcodeHTML}
-              ${showStockBalance ? `<div style="text-align: right;"><span style="font-size: 8px; display: block; color: #4b5563;">QTY</span><strong style="font-size: 14px; font-weight: 900; color: black;">${item.balance} ${item.unit || 'BOX'}</strong></div>` : ''}
-            </div>
+            ${showStockBalance ? `
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px;">
+                <span>Stock Balance:</span>
+                <strong style="color: #111827;">${item.balance}</strong>
+              </div>
+            ` : ''}
+            ${showReorderLevel ? `
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px;">
+                <span>Reorder Level:</span>
+                <strong style="color: #111827;">${item.reorderLevel}</strong>
+              </div>
+            ` : ''}
+            ${showPartyName && item.partyName ? `
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f3f4f6; padding-bottom: 2px; text-overflow: truncate;">
+                <span>Default Supplier:</span>
+                <strong style="color: #111827; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.partyName}</strong>
+              </div>
+            ` : ''}
           </div>
         `;
-      }
 
-      if (style === 'minimalist') {
-        return `
-          <div class="label-card" style="border: 1px solid #d1d5db; border-radius: 6px; background: white; box-sizing: border-box; display: flex; align-items: center; gap: 12px; page-break-inside: avoid; ${sizeClasses[labelSize]}">
-            ${qrHTML}
-            <div style="display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;">
-              <span style="font-size: 12px; font-weight: 800; color: #111827; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${item.name}</span>
-              <span style="font-size: 10px; font-weight: 600; color: #4b5563; margin-top: 2px;">Size: ${item.size} | ${item.unit || 'BOX'}</span>
-              ${showStockBalance ? `<span style="font-size: 9px; color: #6b7280; margin-top: 2px;">Bal: <strong>${item.balance}</strong> | Min: ${item.reorderLevel}</span>` : ''}
-            </div>
-          </div>
-        `;
-      }
-
-      if (style === 'specs') {
-        return `
-          <div class="label-card" style="border: 1.5px solid #3b82f6; border-radius: 8px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; ${sizeClasses[labelSize]}">
-            <div style="background: #eff6ff; margin: -12px -12px 8px -12px; padding: 6px 12px; border-bottom: 1.5px solid #bfdbfe; border-top-left-radius: 6px; border-top-right-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 9px; font-weight: 800; color: #1d4ed8; letter-spacing: 0.5px;">SPECIFICATION LABEL</span>
-              <span style="font-size: 8px; font-weight: 600; color: #1d4ed8;">ID: ${item.id.substring(0, 6)}</span>
-            </div>
-            <div style="font-size: 13px; font-weight: 800; color: #111827; margin-bottom: 2px;">${item.name}</div>
-            ${specsHTML}
-            <div style="display: flex; justify-content: flex-end; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #bfdbfe;">
-              ${barcodeHTML}
-            </div>
-          </div>
-        `;
-      }
-
-      // Warehouse style (Default)
-      return `
-        <div class="label-card" style="border: 1px solid #e5e7eb; border-radius: 8px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; box-shadow: 0 1px 3px rgba(0,0,0,0.05); ${sizeClasses[labelSize]}">
-          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
-            <div style="display: flex; align-items: center; overflow: hidden;">
-              ${imgHTML}
-              <div style="overflow: hidden;">
-                <span style="font-size: 8px; font-weight: 700; color: #9ca3af; display: block; letter-spacing: 0.5px; text-transform: uppercase;">${customTitle}</span>
-                <span style="font-size: 13px; font-weight: 800; color: #111827; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 140px;">${item.name}</span>
+        if (style === 'industrial') {
+          return `
+            <div class="label-card" style="border: 2px solid #111827; border-radius: 4px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; ${sizeClasses[labelSize]}">
+              <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 1.5px solid #111827; padding-bottom: 4px; margin-bottom: 4px;">
+                <span style="font-size: 8px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">${customTitle}</span>
+                ${item.category ? `<span style="font-size: 8px; font-weight: 700; background: #e5e7eb; padding: 1px 4px; border-radius: 2px; text-transform: uppercase;">${item.category}</span>` : ''}
+              </div>
+              <div style="font-size: 14px; font-weight: 900; color: black; line-height: 1.1; margin-bottom: 2px; text-transform: uppercase;">${item.name}</div>
+              <div style="font-size: 11px; font-weight: 800; color: #1f2937;">SIZE: ${item.size}</div>
+              <div style="display: flex; justify-content: space-between; align-items: end; margin-top: auto;">
+                ${barcodeHTML}
+                ${showStockBalance ? `<div style="text-align: right;"><span style="font-size: 8px; display: block; color: #4b5563;">QTY</span><strong style="font-size: 14px; font-weight: 900; color: black;">${item.balance} ${item.unit || 'BOX'}</strong></div>` : ''}
               </div>
             </div>
-            ${qrHTML}
-          </div>
-          
-          ${specsHTML}
-          
-          <div style="display: flex; justify-content: space-between; align-items: end; margin-top: 6px; border-top: 1px solid #f3f4f6; padding-top: 4px;">
-            ${barcodeHTML}
-            <div style="font-size: 9px; color: #9ca3af; text-align: right; font-family: sans-serif;">
-              VERIFIED
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
+          `;
+        }
 
-    // Print iframe technique
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    document.body.appendChild(iframe);
-    
-    const doc = iframe.contentWindow?.document || iframe.contentDocument;
-    if (doc) {
-      doc.open();
-      doc.write(`
-        <html>
-          <head>
-            <title>Print Inventory Labels - ${selectedItems.length} items</title>
-            <style>
-              @page {
-                size: portrait;
-                margin: 10mm;
-              }
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: white;
-                color: #111827;
-              }
-              .grid-container {
-                display: grid;
-                ${gridCols}
-                gap: 12px;
-                width: 100%;
-              }
-              .label-card {
-                box-sizing: border-box;
-                overflow: hidden;
-              }
-              @media print {
-                body {
-                  background-color: white;
-                }
-                .no-print {
-                  display: none;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="grid-container">
-              ${itemsHTML}
+        if (style === 'minimalist') {
+          return `
+            <div class="label-card" style="border: 1px solid #d1d5db; border-radius: 6px; background: white; box-sizing: border-box; display: flex; align-items: center; gap: 12px; page-break-inside: avoid; ${sizeClasses[labelSize]}">
+              ${qrHTML}
+              <div style="display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;">
+                <span style="font-size: 12px; font-weight: 800; color: #111827; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${item.name}</span>
+                <span style="font-size: 10px; font-weight: 600; color: #4b5563; margin-top: 2px;">Size: ${item.size} | ${item.unit || 'BOX'}</span>
+                ${showStockBalance ? `<span style="font-size: 9px; color: #6b7280; margin-top: 2px;">Bal: <strong>${item.balance}</strong> | Min: ${item.reorderLevel}</span>` : ''}
+              </div>
             </div>
-            <script>
-              window.onload = function() {
-                setTimeout(function() {
-                  window.print();
+          `;
+        }
+
+        if (style === 'specs') {
+          return `
+            <div class="label-card" style="border: 1.5px solid #3b82f6; border-radius: 8px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; ${sizeClasses[labelSize]}">
+              <div style="background: #eff6ff; margin: -12px -12px 8px -12px; padding: 6px 12px; border-bottom: 1.5px solid #bfdbfe; border-top-left-radius: 6px; border-top-right-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 9px; font-weight: 800; color: #1d4ed8; letter-spacing: 0.5px;">SPECIFICATION LABEL</span>
+                <span style="font-size: 8px; font-weight: 600; color: #1d4ed8;">ID: ${item.id.substring(0, 6)}</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 800; color: #111827; margin-bottom: 2px;">${item.name}</div>
+              ${specsHTML}
+              <div style="display: flex; justify-content: flex-end; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #bfdbfe;">
+                ${barcodeHTML}
+              </div>
+            </div>
+          `;
+        }
+
+        // Warehouse style (Default)
+        return `
+          <div class="label-card" style="border: 1px solid #e5e7eb; border-radius: 8px; background: white; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; box-shadow: 0 1px 3px rgba(0,0,0,0.05); ${sizeClasses[labelSize]}">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; overflow: hidden;">
+                ${imgHTML}
+                <div style="overflow: hidden;">
+                  <span style="font-size: 8px; font-weight: 700; color: #9ca3af; display: block; letter-spacing: 0.5px; text-transform: uppercase;">${customTitle}</span>
+                  <span style="font-size: 13px; font-weight: 800; color: #111827; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 140px;">${item.name}</span>
+                </div>
+              </div>
+              ${qrHTML}
+            </div>
+            
+            ${specsHTML}
+            
+            <div style="display: flex; justify-content: space-between; align-items: end; margin-top: 6px; border-top: 1px solid #f3f4f6; padding-top: 4px;">
+              ${barcodeHTML}
+              <div style="font-size: 9px; color: #9ca3af; text-align: right; font-family: sans-serif;">
+                VERIFIED
+              </div>
+            </div>
+          </div>
+        `;
+      }));
+
+      const itemsHTML = itemsHTMLArray.join('');
+
+      // Print iframe technique
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+      
+      const doc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(`
+          <html>
+            <head>
+              <title>Print Inventory Labels - ${selectedItems.length} items</title>
+              <style>
+                @page {
+                  size: portrait;
+                  margin: 10mm;
+                }
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                  background-color: white;
+                  color: #111827;
+                }
+                .grid-container {
+                  display: grid;
+                  ${gridCols}
+                  gap: 12px;
+                  width: 100%;
+                }
+                .label-card {
+                  box-sizing: border-box;
+                  overflow: hidden;
+                }
+                @media print {
+                  body {
+                    background-color: white;
+                  }
+                  .no-print {
+                    display: none;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="grid-container">
+                ${itemsHTML}
+              </div>
+              <script>
+                window.onload = function() {
                   setTimeout(function() {
-                    window.parent.document.body.removeChild(window.frameElement);
-                  }, 1000);
-                }, 500);
-              };
-            </script>
-          </body>
-        </html>
-      `);
-      doc.close();
-      toast.success("Sending labels to your printer. Check your print preview modal.");
+                    window.print();
+                    setTimeout(function() {
+                      window.parent.document.body.removeChild(window.frameElement);
+                    }, 1000);
+                  }, 500);
+                };
+              </script>
+            </body>
+          </html>
+        `);
+        doc.close();
+        toast.dismiss(toastId);
+        toast.success("Sending labels to your printer. Check your print preview modal.");
+      }
+    } catch (err) {
+      toast.dismiss(toastId);
+      console.error(err);
+      toast.error("An error occurred during barcode label compilation.");
     }
   };
 
@@ -487,8 +529,8 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
                 { state: showStockBalance, setter: setShowStockBalance, label: 'Show Stock Quantity' },
                 { state: showReorderLevel, setter: setShowReorderLevel, label: 'Show Reorder Safety Level' },
                 { state: showPartyName, setter: setShowPartyName, label: 'Show Preferred Supplier' },
-                { state: showBarcode, setter: setShowBarcode, label: 'Render Mock Barcode' },
-                { state: showQR, setter: setShowQR, label: 'Render Mock QR Code' },
+                { state: showBarcode, setter: setShowBarcode, label: 'Render Scannable Barcode' },
+                { state: showQR, setter: setShowQR, label: 'Render Scannable QR Code' },
               ].map((toggle, tIdx) => (
                 <button
                   key={tIdx}
@@ -551,10 +593,14 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
                         <h4 className="text-sm font-black tracking-tight leading-tight uppercase line-clamp-1">{item.name}</h4>
                         <div className="text-[11px] font-extrabold">SIZE: {item.size}</div>
                         
-                        <div className="flex justify-between items-end mt-auto">
-                          {showBarcode && renderBarcodeSVG(item.id, true)}
+                        <div className="flex justify-between items-end mt-auto w-full">
+                          {showBarcode && (
+                            <div className="w-full pr-2">
+                              <BarcodeRenderer value={getBarcodeData(item)} labelText={`* ${item.name.substring(0, 15).toUpperCase()} *`} lightTheme={true} />
+                            </div>
+                          )}
                           {showStockBalance && (
-                            <div className="text-right">
+                            <div className="text-right shrink-0">
                               <span className="text-[8px] block text-gray-500 font-bold">QTY</span>
                               <strong className="text-sm font-black leading-none">{item.balance} {item.unit || 'BOX'}</strong>
                             </div>
@@ -572,7 +618,7 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
                           labelSize === 'sm' ? 'h-24' : labelSize === 'md' ? 'h-32' : 'h-40'
                         }`}
                       >
-                        {showQR && renderQRCodeSVG(item.id, false)}
+                        {showQR && <QRCodeRenderer value={getBarcodeData(item)} lightTheme={true} />}
                         <div className="flex flex-col flex-1 overflow-hidden">
                           <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white leading-tight truncate">{item.name}</h4>
                           <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 mt-1">
@@ -625,7 +671,7 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
 
                         {showBarcode && (
                           <div className="pt-2 mt-2 border-t border-dashed border-gray-100 dark:border-gray-800">
-                            {renderBarcodeSVG(item.id, false)}
+                            <BarcodeRenderer value={getBarcodeData(item)} labelText={`* ${item.name.substring(0, 15).toUpperCase()} *`} lightTheme={true} />
                           </div>
                         )}
                       </div>
@@ -652,7 +698,7 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
                             <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white leading-tight truncate">{item.name}</h4>
                           </div>
                         </div>
-                        {showQR && renderQRCodeSVG(item.id, false)}
+                        {showQR && <QRCodeRenderer value={getBarcodeData(item)} lightTheme={true} />}
                       </div>
 
                       <div className="text-[10px] text-gray-500 dark:text-gray-400 flex flex-col gap-0.5 mt-2">
@@ -681,7 +727,7 @@ export const BulkPrintLabelsModal: React.FC<BulkPrintLabelsModalProps> = ({ sele
                       </div>
 
                       <div className="flex justify-between items-end mt-2 pt-2 border-t border-gray-50 dark:border-gray-800">
-                        {showBarcode && renderBarcodeSVG(item.id, false)}
+                        {showBarcode && <BarcodeRenderer value={getBarcodeData(item)} labelText={`* ${item.name.substring(0, 15).toUpperCase()} *`} lightTheme={true} />}
                         <span className="text-[8px] font-black text-gray-400 tracking-wider">VERIFIED STICKER</span>
                       </div>
                     </div>

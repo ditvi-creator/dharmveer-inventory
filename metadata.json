@@ -2,7 +2,8 @@
   "name": "Stockify",
   "description": "Professional stock management system featuring real-time inventory tracking, searchable data grids, and automated balance calculations.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "camera"
   ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

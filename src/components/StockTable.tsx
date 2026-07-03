@@ -476,6 +476,7 @@ export const StockTable: React.FC<StockTableProps> = ({
         <BulkPrintLabelsModal 
           selectedItems={selectedItems} 
           onClose={() => setIsPrintModalOpen(false)} 
+          godowns={godowns}
         />
       )}
       {isBulkUpdateModalOpen && (
