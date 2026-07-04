@@ -173,13 +173,12 @@ export const GPayDialog: React.FC<GPayDialogProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800/60">
               <div className="flex items-center gap-2.5">
                 <div className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 p-1.5 rounded-xl border border-gray-100 dark:border-gray-700">
-                  <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M26.43 14.88H13.57V25.12H26.43V14.88Z" fill="white"/>
-                    <path d="M20.0003 4C11.1633 4 4.00029 11.163 4.00029 20C4.00029 28.837 11.1633 36 20.0003 36C28.8373 36 36.0003 28.837 36.0003 20C36.0003 11.163 28.8373 4 20.0003 4ZM20.0003 32.7273C12.9691 32.7273 7.27302 27.0312 7.27302 20C7.27302 12.9688 12.9691 7.27273 20.0003 7.27273C27.0315 7.27273 32.7276 12.9688 32.7276 20C32.7276 27.0312 27.0315 32.7273 20.0003 32.7273Z" fill="#34A853"/>
-                    <path d="M25.4 15.6H14.6C14.05 15.6 13.6 16.05 13.6 16.6V23.4C13.6 23.95 14.05 24.4 14.6 24.4H25.4C25.95 24.4 26.4 23.95 26.4 23.4V16.6C26.4 16.05 25.95 15.6 25.4 15.6Z" fill="#EA4335"/>
-                    <path d="M22 17.5V19.5H18V17.5H22Z" fill="#FBBC05"/>
-                    <path d="M19.5 16V24H20.5V16H19.5Z" fill="#4285F4"/>
-                  </svg>
+                  <img 
+                    src="https://www.image2url.com/r2/default/images/1783152005712-467c66bf-ff1a-49d2-ad78-73c99d36dfeb.png" 
+                    alt="Google Pay Logo" 
+                    className="w-8 h-8 object-contain"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-base text-gray-900 dark:text-white flex items-center gap-1.5">
