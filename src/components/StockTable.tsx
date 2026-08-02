@@ -403,9 +403,9 @@ export const StockTable: React.FC<StockTableProps> = ({
                               )}
                               <button
                                 onClick={() => onOpenChallan(item, booking)}
-                                className="mt-1 flex items-center justify-center gap-1 w-full text-xs font-bold text-blue-600 dark:text-blue-400 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                className="mt-1.5 flex items-center justify-center gap-1.5 w-full text-sm font-extrabold text-blue-600 dark:text-blue-400 py-2 px-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors active:scale-[0.99]"
                               >
-                                <Printer className="w-3.5 h-3.5" /> Generate Challan
+                                <Printer className="w-4 h-4" /> Generate Challan
                               </button>
                             </div>
                           );
