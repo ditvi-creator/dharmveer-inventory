@@ -2036,6 +2036,19 @@ export default function App() {
             trialStartedAt={trialStartedAt}
             isSubscribed={isSubscribed}
           />
+
+          {/* Ad banner embed on home page */}
+          <div className="mt-6 flex justify-center items-center">
+            <div className="overflow-hidden rounded-xl bg-white dark:bg-gray-850 p-1 border border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-center">
+              <iframe 
+                src="https://ad-swap.web.app/frame.html?site=bm1SdMIzxY7eg12QqZFZ" 
+                style={{ border: 0, width: '300px', height: '130px', maxWidth: '100%' }} 
+                loading="lazy" 
+                sandbox="allow-scripts allow-popups" 
+                title="Ad"
+              />
+            </div>
+          </div>
         </>
       ) : (
         <Suspense fallback={<LoadingFallback />}>
