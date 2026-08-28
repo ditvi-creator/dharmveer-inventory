@@ -338,6 +338,19 @@ export const Layout: React.FC<LayoutProps> = ({
       <main className="max-w-[1600px] mx-auto p-4 sm:p-8">
         {children}
       </main>
+
+      {/* Footer Embed */}
+      <footer className="max-w-[1600px] mx-auto px-4 sm:px-8 pb-12 pt-4 flex flex-col items-center justify-center gap-3">
+        <div className="flex items-center justify-center overflow-hidden rounded-xl">
+          <iframe 
+            src="https://ad-swap.web.app/frame.html?site=bm1SdMIzxY7eg12QqZFZ" 
+            style={{ border: 0, width: '300px', height: '130px', maxWidth: '100%' }} 
+            loading="lazy" 
+            sandbox="allow-scripts allow-popups" 
+            title="Ad"
+          />
+        </div>
+      </footer>
     </div>
   );
 };
